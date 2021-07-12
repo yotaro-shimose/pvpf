@@ -1,0 +1,14 @@
+# Entire Cache
+*cache
+
+# VSCode
+.vscode
+
+# PyCache
+*.pyc
+
+# Temporary Files
+temp*
+
+# Data Files (We manage tf records with git instead)
+data
