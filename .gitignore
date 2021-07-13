@@ -5,6 +5,7 @@
 .vscode
 
 # PyCache
+__pycache__
 *.pyc
 
 # Temporary Files
@@ -12,3 +13,4 @@ temp*
 
 # Data Files (We manage tf records with git instead)
 data
+tfrecords

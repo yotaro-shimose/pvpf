@@ -1,4 +1,22 @@
+import os
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Generator, Tuple
+
+import numpy as np
+import pandas as pd
 import tensorflow as tf
+from pvpf.property.tfrecord_property import TFRecordProperty
+from pvpf.utils.converter import center_crop
+
+
+def date_range(
+    start: datetime, end: datetime, step: timedelta
+) -> Generator[datetime, None, None]:
+    cur = start
+    while cur < end:
+        yield cur
+        cur += step
 
 
 def _bytes_feature(value):
@@ -44,13 +62,99 @@ def _parse_function(example_proto):
 
 def write_tfrecord(file_name: str, dataset: tf.data.Dataset):
     serialized_dataset = dataset.map(_tf_serialize_example)
+    path = Path(file_name)
+    parent = path.parent
+    if not parent.exists():
+        parent.mkdir(parents=True)
     writer = tf.data.experimental.TFRecordWriter(file_name)
     writer.write(serialized_dataset)
 
 
-def read_tfrecord(file_name: str) -> tf.data.Dataset:
-    filenames = [file_name]
+def load_tfrecord(dir_name: str) -> tf.data.Dataset:
+    filenames = list(
+        map(lambda x: str(Path(dir_name).joinpath(x)), os.listdir(dir_name))
+    )
     raw_dataset = tf.data.TFRecordDataset(filenames)
 
     parsed_dataset = raw_dataset.map(_parse_function)
     return parsed_dataset
+
+
+def load_image_feature(path: Path, feature_names: Tuple[str, ...]) -> np.ndarray:
+    with path.open(mode="r") as f:
+        df: pd.DataFrame = pd.read_csv(f)
+    feature_names = list(feature_names)
+    features = df[feature_names]
+    size = np.sqrt(features.shape[0]).astype(np.int)
+    raw_data = features.values.reshape(size, size, len(feature_names))
+    return raw_data
+
+
+def load_image_features(
+    plant_name: str, feature_names: Tuple[str, ...], start: datetime, end: datetime
+) -> np.ndarray:
+    ans = list()
+    for datetime in date_range(start, end, timedelta(hours=1)):
+        folder_name = f"{datetime.year}{datetime.month:02}"
+        file_name = f"{datetime.year}-{datetime.month:02}-{datetime.day:02}T{datetime.hour:02}:00:00+09:00.csv"
+        path = Path("./").joinpath(
+            "data", plant_name, "features", folder_name, file_name
+        )
+        image = load_image_feature(path, feature_names)
+        ans.append(image)
+    ans = np.stack(ans)
+    return ans
+
+
+def load_targets(plant_name: str, start: datetime, end: datetime) -> np.ndarray:
+    path = Path("./").joinpath("data", plant_name, "targets", "reshaped_data.csv")
+    with path.open(mode="r") as f:
+        df: pd.DataFrame = pd.read_csv(f)
+    date = pd.to_datetime(df["datetime"])
+    lower = start <= date
+    upper = date < end
+    ans = df[lower & upper]
+    ans = ans["generated_energy"]
+    return ans
+
+
+def load_as_dataset(
+    plant_name: str,
+    feature_names: Tuple[str, ...],
+    start: datetime,
+    end: datetime,
+    time_delta: timedelta,
+    image_size: Tuple[int, int],
+) -> tf.data.Dataset:
+    feature_start = start
+    feature_end = end - time_delta
+    target_start = start + time_delta
+    target_end = end
+    features = load_image_features(
+        plant_name, feature_names, feature_start, feature_end
+    )
+    features = center_crop(features, image_size)
+    targets = load_targets(plant_name, target_start, target_end)
+    assert features.shape[0] == targets.shape[0]
+    dataset = tf.data.Dataset.from_tensor_slices((features, targets))
+    return dataset
+
+
+def create_tfrecord(prop: TFRecordProperty) -> str:
+    window = timedelta(days=7)
+    dir_path = Path("./").joinpath("tfrecords", prop.name, prop.plant_name)
+    for index, start in enumerate(
+        date_range(prop.start, prop.end, window - prop.time_delta)
+    ):
+        path = str(dir_path.joinpath(f"segment{index}.tfrecord"))
+        end = min(prop.end, start + window)
+        dataset = load_as_dataset(
+            prop.plant_name,
+            prop.feature_names,
+            start,
+            end,
+            prop.time_delta,
+            prop.image_size,
+        )
+        write_tfrecord(path, dataset)
+    return dir_path
