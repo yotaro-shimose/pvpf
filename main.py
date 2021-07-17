@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Tuple
 
 import tensorflow as tf
@@ -58,9 +59,11 @@ def compute_error_rate(model: tf.keras.Model, dataset: tf.data.Dataset) -> tf.Te
 
 
 if __name__ == "__main__":
+    log_dir = str(Path("./").joinpath("logs"))
     input_shape = (None, 200, 200, 9)
     num_epochs = 100
     batch_size = 128
+    tb_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir)
     prop = get_base_prop()
     # create_tfrecord(prop)
     dataset = load_tfrecord(prop.dir_name)
@@ -71,6 +74,11 @@ if __name__ == "__main__":
     model = get_model(input_shape)
     model.compile(optimizer="adam", loss="mae", metrics="mae")
     model.build(input_shape)
-    model.fit(training_dataset, epochs=num_epochs, validation_data=test_dataset)
+    model.fit(
+        training_dataset,
+        epochs=num_epochs,
+        validation_data=test_dataset,
+        callbacks=[tb_callback],
+    )
     error_rate = compute_error_rate(model, test_dataset)
     print(error_rate)
