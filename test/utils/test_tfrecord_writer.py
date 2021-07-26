@@ -19,8 +19,6 @@ from pvpf.utils.tfrecord_writer import (
 )
 
 feature_names = [
-    "lo",
-    "la",
     "tmp",
     "rh",
     "tcdc",
@@ -37,7 +35,7 @@ def test_tfrecord_writer():
     dataset = tf.data.Dataset.from_tensor_slices((features, targets))
     dir = Path("./").joinpath("tfrecords", "test_tfrecord_writer")
     file_name = "test.tfrecord"
-    path = str(dir.joinpath(file_name))
+    path = dir.joinpath(file_name)
     write_tfrecord(path, dataset)
     loaded_dataset = load_tfrecord(str(dir))
     loaded_features = list()
@@ -54,7 +52,7 @@ def test_tfrecord_writer():
 
 def test_load_image_feature():
     path = Path("./data/apbank/features/202008/2020-08-01T00:00:00+09:00.csv")
-    data = load_image_feature(path, feature_names)
+    data = load_image_feature(path, feature_names, list())
     assert data.shape == (301, 301, len(feature_names))
 
 
@@ -63,7 +61,7 @@ def test_load_image_features():
     start = datetime(2020, 9, 1, 0, 0, 0, 0)
     end = datetime(2020, 9, 2, 23, 0, 0, 0)
 
-    features = load_image_features(plant_name, feature_names, start, end)
+    features = load_image_features(plant_name, feature_names, start, end, list())
     delta = end - start
     hours = round(delta.total_seconds() / 3600)
     assert features.shape == (hours, *ORIGINAL_IMAGE_SIZE, len(feature_names))
@@ -87,7 +85,7 @@ def test_load_as_datasets():
     end = datetime(2020, 9, 1, 23, 0, 0)
     image_size = (200, 200)
     dataset = load_as_dataset(
-        plant_name, feature_names, start, end, time_delta, image_size
+        plant_name, feature_names, start, end, time_delta, image_size, list()
     )
     delta = end - start
     hours = round(delta.total_seconds() / 3600)
