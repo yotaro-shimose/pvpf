@@ -1,7 +1,8 @@
-from dataclasses import dataclass, field, MISSING
+from dataclasses import MISSING, dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Tuple
+
 from pvpf.preprocessor.preprocessor import Preprocessor
 
 

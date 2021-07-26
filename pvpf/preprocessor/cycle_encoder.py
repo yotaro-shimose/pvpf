@@ -1,7 +1,8 @@
 from typing import List
+
+import numpy as np
 import pandas as pd
 from pvpf.preprocessor.preprocessor import Preprocessor
-import numpy as np
 
 
 class CycleEncoder(Preprocessor):
