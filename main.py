@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from pathlib import Path
+from pvpf.preprocessor.cycle_encoder import CycleEncoder
 from typing import Tuple
 
 import tensorflow as tf
@@ -15,8 +16,7 @@ def get_base_prop() -> TFRecordProperty:
     plant_name = "apbank"
     time_delta = timedelta(hours=1)
     feature_names = (
-        "lo",
-        "la",
+        "datetime",
         "tmp",
         "rh",
         "tcdc",
@@ -26,10 +26,19 @@ def get_base_prop() -> TFRecordProperty:
         "dswrf",
     )
     image_size = (200, 200)
+    preprocessors = list()
+    preprocessors.append(CycleEncoder("datetime"))
     start: datetime = datetime(2020, 8, 31, 0, 0, 0)
     end: datetime = datetime(2020, 11, 1, 0, 0, 0)
     prop = TFRecordProperty(
-        name, plant_name, time_delta, feature_names, image_size, start, end
+        name,
+        plant_name,
+        time_delta,
+        feature_names,
+        image_size,
+        start,
+        end,
+        preprocessors,
     )
     return prop
 
@@ -60,7 +69,7 @@ def compute_error_rate(model: tf.keras.Model, dataset: tf.data.Dataset) -> tf.Te
 
 if __name__ == "__main__":
     log_dir = str(Path("./").joinpath("logs"))
-    input_shape = (None, 200, 200, 9)
+    input_shape = (None, 200, 200, 11)
     num_epochs = 100
     batch_size = 128
     tb_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir)
@@ -74,6 +83,7 @@ if __name__ == "__main__":
     model = get_model(input_shape)
     model.compile(optimizer="adam", loss="mae", metrics="mae")
     model.build(input_shape)
+
     model.fit(
         training_dataset,
         epochs=num_epochs,
