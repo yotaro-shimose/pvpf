@@ -1,12 +1,23 @@
-from typing import Callable
+from typing import Callable, Dict, Any
 
 import tensorflow as tf
+import inspect
 
+
+def get_args(offset: int = None) -> Dict[str, Any]:
+    parent_frame = inspect.currentframe().f_back
+    info = inspect.getargvalues(parent_frame)
+    return {key: info.locals[key] for key in info.args[offset:]}
+
+
+PVPF = "PVPF"
 
 # Reference https://qiita.com/hima_zin331/items/2adba781bc4afaae5880
+@tf.keras.utils.register_keras_serializable(package=PVPF, name="ResidualBlock")
 class ResidualBlock(tf.keras.layers.Layer):
     def __init__(self, in_channels: int, out_channels: int):
         super().__init__()
+        self._args = get_args(offset=1)
         bneck_channels = out_channels // 4
         self._bn1 = tf.keras.layers.BatchNormalization()
         self._conv1 = tf.keras.layers.Conv2D(
@@ -64,8 +75,12 @@ class ResidualBlock(tf.keras.layers.Layer):
         x = x + shortcut
         return x
 
+    def get_config(self) -> Dict[str, Any]:
+        return self._args
+
 
 # ResNet50(Pre Activation)
+@tf.keras.utils.register_keras_serializable(PVPF, "ResNet")
 class ResNet(tf.keras.Model):
     def __init__(
         self,
@@ -77,6 +92,7 @@ class ResNet(tf.keras.Model):
         dim_hidden: int,
     ):
         super().__init__()
+        self._args = get_args(offset=1)
         self._layers = [
             tf.keras.layers.BatchNormalization(),
             tf.keras.layers.Activation(tf.nn.relu),
@@ -103,3 +119,6 @@ class ResNet(tf.keras.Model):
             x = layer(x)
         x = tf.squeeze(x, axis=-1)
         return x
+
+    def get_config(self) -> Dict[str, Any]:
+        return self._args

@@ -13,8 +13,7 @@ class TFRecordProperty:
     time_delta: timedelta = timedelta(hours=1)
     feature_names: List[str] = field(
         default_factory=lambda: (
-            "lo",
-            "la",
+            "datetime",
             "tmp",
             "rh",
             "tcdc",
@@ -26,8 +25,8 @@ class TFRecordProperty:
         default=MISSING,
     )
     image_size: Tuple[int, int] = (200, 200)
-    start: datetime = datetime(2020, 8, 31, 0, 0, 0)
-    end: datetime = datetime(2020, 11, 30, 23, 0, 0)
+    start: datetime = datetime(2020, 4, 1, 0, 0, 0)
+    end: datetime = datetime(2021, 4, 1, 0, 0, 0)
     preprocessors: List[Preprocessor] = field(default_factory=list, default=MISSING)
 
     @property

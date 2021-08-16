@@ -1,5 +1,5 @@
-import os
 import shutil
+from copy import deepcopy
 from datetime import datetime, timedelta
 from itertools import count
 from pathlib import Path
@@ -10,6 +10,7 @@ from pvpf.constants import ORIGINAL_IMAGE_SIZE
 from pvpf.property.tfrecord_property import TFRecordProperty
 from pvpf.utils.tfrecord_writer import (
     create_tfrecord,
+    date_range,
     load_as_dataset,
     load_image_feature,
     load_image_features,
@@ -51,7 +52,7 @@ def test_tfrecord_writer():
 
 
 def test_load_image_feature():
-    path = Path("./data/apbank/features/202008/2020-08-01T00:00:00+09:00.csv")
+    path = Path("./data/apbank/features/202004/2020-04-01T09:00:00+09:00.csv")
     data = load_image_feature(path, feature_names, list())
     assert data.shape == (301, 301, len(feature_names))
 
@@ -90,8 +91,8 @@ def test_load_as_datasets():
     delta = end - start
     hours = round(delta.total_seconds() / 3600)
     assert len(dataset) == hours - horizon
-    feature: np.ndarray
-    target: np.ndarray
+    feature: tf.Tensor
+    target: tf.Tensor
     feature, target = next(dataset.__iter__())
     assert feature.shape == image_size + (len(feature_names),)
     assert target.shape == ()
@@ -120,3 +121,13 @@ def test_create_tfrecord():
         next(counter)
     assert next(counter) == hours - horizon
     shutil.rmtree(dir_name)
+
+
+def test_date_range():
+    start = datetime(2020, 4, 1)
+    end = datetime(2020, 11, 1)
+    window = timedelta(7)
+    generator = date_range(start, end, window)
+    cur = deepcopy(start)
+    for i, s in enumerate(generator):
+        assert s == cur + window * i

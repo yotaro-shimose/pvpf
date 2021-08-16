@@ -83,12 +83,12 @@ def load_tfrecord(dir_name: str) -> tf.data.Dataset:
 def load_image_feature(
     path: Path, feature_names: Tuple[str, ...], preprocessors: List[Preprocessor]
 ) -> np.ndarray:
-    with path.open(mode="r") as f:
-        df: pd.DataFrame = pd.read_csv(f)
+    df: pd.DataFrame = pd.read_csv(path)
     for preprocessor in preprocessors:
         df = preprocessor.process(df)
     features = df[feature_names]
     size = np.sqrt(features.shape[0]).astype(np.int)
+    assert size * size == features.shape[0]
     raw_data = features.values.reshape(size, size, len(feature_names))
     return raw_data
 
@@ -114,7 +114,7 @@ def load_image_features(
 
 
 def load_targets(plant_name: str, start: datetime, end: datetime) -> np.ndarray:
-    path = Path("./").joinpath("data", plant_name, "targets", "reshaped_data.csv")
+    path = Path("./").joinpath("data", plant_name, "targets", "target.csv")
     with path.open(mode="r") as f:
         df: pd.DataFrame = pd.read_csv(f)
     date = pd.to_datetime(df["datetime"])
