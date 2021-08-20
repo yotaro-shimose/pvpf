@@ -40,4 +40,4 @@ class TFRecordProperty:
             feature_names.remove(processor.input_label)
             for label in processor.output_labels:
                 feature_names.add(label)
-        self.feature_names = list(feature_names)
+        self.feature_names = list(sorted(feature_names))
