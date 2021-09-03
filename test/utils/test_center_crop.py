@@ -2,7 +2,7 @@ from typing import Tuple
 
 import numpy as np
 import pytest
-from pvpf.utils.converter import center_crop
+from pvpf.utils.center_crop import center_crop
 
 
 @pytest.mark.parametrize(

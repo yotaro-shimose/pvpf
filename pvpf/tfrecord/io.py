@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
-from pvpf.utils.converter import center_crop
+from pvpf.utils.center_crop import center_crop
 from typing import List, Tuple
 
 import numpy as np
