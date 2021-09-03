@@ -10,7 +10,7 @@ from pvpf.preprocessor.preprocessor import Preprocessor
 class TFRecordProperty:
     name: str
     plant_name: str
-    time_delta: timedelta = timedelta(hours=1)
+    time_unit: timedelta = timedelta(hours=1)
     feature_names: List[str] = field(
         default_factory=lambda: (
             "datetime",
@@ -30,9 +30,8 @@ class TFRecordProperty:
     preprocessors: List[Preprocessor] = field(default_factory=list, default=MISSING)
 
     @property
-    def dir_name(self) -> str:
-        dir_path = Path("./").joinpath("tfrecords", self.name, self.plant_name)
-        return str(dir_path)
+    def dir_path(self) -> Path:
+        return Path(".").joinpath("tfrecords", f"{self.name}-{self.plant_name}")
 
     def __post_init__(self):
         feature_names = set(self.feature_names)
