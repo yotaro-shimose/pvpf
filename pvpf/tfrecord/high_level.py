@@ -16,16 +16,18 @@ from typing import Tuple
 
 def _count_hours(start: datetime, end: datetime) -> int:
     dif = end - start
-    assert dif.seconds % 3600 == 0
-    return dif.seconds // 3600
+    assert dif.total_seconds() % 3600 == 0
+    return int(dif.total_seconds() // 3600)
 
 
 def load_dataset(
     train_prop: TrainingProperty,
 ) -> Tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset, tf.data.Dataset]:
     # target
+    target_shape = tuple()
     target_path = train_prop.tfrecord_property.dir_path.joinpath("target")
     origin_target = load_tfrecord(target_path)
+    origin_target = origin_target.map(lambda x: tf.ensure_shape(x, target_shape))
 
     num_init_skip = _count_hours(
         train_prop.tfrecord_property.start, train_prop.prediction_start
@@ -37,8 +39,12 @@ def load_dataset(
     test_target = temp_target.skip(num_train).take(num_test)
 
     # feature
+    feature_shape = train_prop.tfrecord_property.image_size + (
+        len(train_prop.tfrecord_property.feature_names),
+    )
     feature_path = train_prop.tfrecord_property.dir_path.joinpath("feature")
     origin_feature = load_tfrecord(feature_path)
+    origin_feature = origin_feature.map(lambda x: tf.ensure_shape(x, feature_shape))
 
     if train_prop.window is not None:
         batch_feature = origin_feature.window(size=train_prop.window, shift=1).flat_map(
