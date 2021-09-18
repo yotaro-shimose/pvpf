@@ -17,3 +17,6 @@ tfrecords
 
 # TensorBoard
 logs
+
+# output files
+output
