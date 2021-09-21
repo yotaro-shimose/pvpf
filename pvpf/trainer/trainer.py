@@ -4,8 +4,9 @@ from pvpf.model.convlstm import build_conv_lstm
 from pvpf.tfrecord.high_level import load_dataset
 import tensorflow as tf
 from typing import TypedDict
-from ray.tune.integration.keras import TuneReportCheckpointCallback
+from ray.tune.integration.keras import TuneReportCallback
 import os
+from ray import tune
 
 
 class TrainingConfig(TypedDict):
@@ -37,12 +38,17 @@ def tune_trainer(config: TrainingConfig, checkpoint_dir=None):
     model.compile(optimizer=optimizer, loss="mse", metrics=["mae"])
 
     callbacks = list()
-    tune_report_callback = TuneReportCheckpointCallback(frequency=config["save_freq"])
+    tune_report_callback = TuneReportCallback()
     early_stopping_callback = tf.keras.callbacks.EarlyStopping(
         monitor="val_loss", patience=1, mode="min"
     )
+    model_path = config["cwd"].joinpath("savedmodel", tune.get_trial_name())
+    save_model_callback = tf.keras.callbacks.ModelCheckpoint(
+        model_path, monitor="val_loss", save_best_only=True, mode="min"
+    )
     callbacks.append(tune_report_callback)
     callbacks.append(early_stopping_callback)
+    callbacks.append(save_model_callback)
     model.fit(
         train_dataset,
         validation_data=test_dataset,

@@ -8,11 +8,11 @@ if __name__ == "__main__":
     config = TrainingConfig(
         batch_size=8,
         num_epochs=30,
-        learning_rate=tune.grid_search([1e-3, 1e-4]),
+        learning_rate=tune.grid_search([1e-3, 5e-4]),
         training_property=token,
-        shuffle_buffer=(365 * 24 // 5),  # carefully set this value to avoid OOM
+        shuffle_buffer=(365 * 24),  # carefully set this value to avoid OOM
         cwd=Path(".").resolve(),
         save_freq=10,
     )
-    resources_per_trial = {"cpu": 8, "gpu": 1}
+    resources_per_trial = {"cpu": 20, "gpu": 4}
     tune.run(tune_trainer, config=config, resources_per_trial=resources_per_trial)
