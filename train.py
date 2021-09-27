@@ -8,7 +8,8 @@ if __name__ == "__main__":
     config = TrainingConfig(
         batch_size=8,
         num_epochs=30,
-        learning_rate=tune.grid_search([1e-3, 5e-4]),
+        learning_rate=tune.grid_search([1e-3, 5e-4, 1e-4]),
+        target_scale=1e-3,
         training_property=token,
         shuffle_buffer=(365 * 24),  # carefully set this value to avoid OOM
         cwd=Path(".").resolve(),
