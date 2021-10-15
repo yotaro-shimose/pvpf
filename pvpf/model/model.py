@@ -12,6 +12,7 @@ def get_args(offset: int = None) -> Dict[str, Any]:
 
 PVPF = "PVPF"
 
+
 # Reference https://qiita.com/hima_zin331/items/2adba781bc4afaae5880
 @tf.keras.utils.register_keras_serializable(package=PVPF, name="ResidualBlock")
 class ResidualBlock(tf.keras.layers.Layer):
