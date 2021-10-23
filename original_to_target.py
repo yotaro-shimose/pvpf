@@ -1,45 +1,34 @@
 import pandas as pd
 from pathlib import Path
-import datetime
 import numpy as np
-from functools import reduce
+from pvpf.utils.date_range import date_range
+from datetime import datetime, timedelta
 
-
-def get_one_day_series(df: pd.DataFrame, date: datetime.date) -> pd.DataFrame:
-    def get_hour_generation(hour) -> float:
-        first_string = f"{hour:02}:00-{hour:02}:30"
-        last_string = f"{hour:02}:30-{hour + 1:02}:00"
-        record = df[df["datetime"].dt.date == date]
-        return record[first_string] + record[last_string]
-
+if __name__ == "__main__":
+    path = Path(".").joinpath("newdata.csv")
+    df = pd.read_csv(path)
+    frame_labels = [f"frame{idx:02}" for idx in range(1, 48 + 1)]
+    days_per_half_hour = df[frame_labels].values
+    days_per_hour = [
+        np.array([day[2 * i] + day[2 * i + 1] for i in range(24)])
+        for day in days_per_half_hour
+    ]
+    hours = np.concatenate(days_per_hour, axis=0)
     datetimes = np.array(
-        [datetime.datetime.combine(date, datetime.time(hour, 0)) for hour in range(24)]
+        list(
+            date_range(
+                datetime(2021, 4, 1, 0, 0, 0),
+                datetime(2021, 7, 1, 0, 0, 0),
+                timedelta(hours=1),
+            )
+        )
     )
-    generations = (
-        np.array(list(map(get_hour_generation, range(24)))).squeeze(-1).astype(np.float)
-    )
-    ans = pd.DataFrame({"datetime": datetimes, "generated_energy": generations})
-    return ans
-
-
-def create_target(df: pd.DataFrame) -> pd.DataFrame:
-    df["datetime"] = pd.to_datetime(df.pop("date"))
-    dates = df["datetime"].dt.date
-    ans = reduce(
-        lambda x, y: pd.merge(x, y, how="outer"),
-        map(lambda x: get_one_day_series(df, x), dates),
-    )
-    return ans
-
-
-input_path = Path("./").joinpath("temp.csv")
-
-with input_path.open("r") as f:
-    df: pd.DataFrame = pd.read_csv(f)
-
-df_out = create_target(df)
-
-output_path = Path("./").joinpath("temp_out.csv")
-
-with output_path.open("w") as f:
-    f.write(df_out.to_csv())
+    assert len(hours) == len(datetimes)
+    df_dict = {"datetime": datetimes, "generated_energy": hours}
+    df = pd.DataFrame(df_dict)
+    previous_path = Path(".").joinpath("data", "apbank", "targets", "target.csv")
+    previous_df = pd.read_csv(previous_path, index_col=0)
+    previous_df["datetime"] = pd.to_datetime(previous_df["datetime"])
+    new_df = pd.concat([previous_df, df])
+    out_path = Path(".").joinpath("data", "apbank", "targets", "new_target.csv")
+    new_df.to_csv(out_path, index=False)

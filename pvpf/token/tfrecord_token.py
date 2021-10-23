@@ -14,4 +14,31 @@ base_token = TFRecordProperty(
     [CycleEncoder("datetime")],
 )
 
-TFRECORD_TOKENS: Dict[str, TFRecordProperty] = {"base": base_token}
+small_token = TFRecordProperty(
+    "small",
+    "apbank",
+    timedelta(hours=1),
+    (
+        "datetime",
+        "prmsl",
+        "pres",
+        "ugrd",
+        "vgrd",
+        "tmp",
+        "rh",
+        "tcdc",
+        "lcdc",
+        "mcdc",
+        "hcdc",
+        "dswrf",
+    ),
+    (50, 50),
+    datetime(2020, 4, 1, 0, 0, 0),
+    datetime(2021, 7, 1, 0, 0, 0),
+    [CycleEncoder("datetime")],
+)
+
+TFRECORD_TOKENS: Dict[str, TFRecordProperty] = {
+    "base": base_token,
+    "small": small_token,
+}

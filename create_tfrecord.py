@@ -3,5 +3,5 @@ from pvpf.token.tfrecord_token import TFRECORD_TOKENS
 
 
 if __name__ == "__main__":
-    token = TFRECORD_TOKENS["base"]
+    token = TFRECORD_TOKENS["small"]
     create_tfrecord(token)
