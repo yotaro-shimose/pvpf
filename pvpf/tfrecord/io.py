@@ -1,4 +1,3 @@
-import os
 from datetime import datetime, timedelta
 from pathlib import Path
 from pvpf.utils.center_crop import center_crop
@@ -66,9 +65,9 @@ def _load_image_features(
     preprocessors: List[Preprocessor],
 ) -> np.ndarray:
     ans = list()
-    for datetime in date_range(start, end, timedelta(hours=1)):
-        folder_name = f"{datetime.year}{datetime.month:02}"
-        file_name = f"{datetime.year}-{datetime.month:02}-{datetime.day:02}T{datetime.hour:02}:00:00+09:00.csv"
+    for dt in date_range(start, end, timedelta(hours=1)):
+        folder_name = f"{dt.year}{dt.month:02}"
+        file_name = f"{dt.year}-{dt.month:02}-{dt.day:02}T{dt.hour:02}:00:00+09:00.csv"
         path = Path("./").joinpath(
             "data", plant_name, "features", folder_name, file_name
         )

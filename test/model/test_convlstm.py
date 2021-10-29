@@ -1,6 +1,9 @@
-from pvpf.model.convlstm import build_conv_lstm
-import tensorflow as tf
 import numpy as np
+import tensorflow.keras as keras
+from pathlib import Path
+from pvpf.model.convlstm import build_conv_lstm, ConvLSTM
+import shutil
+import tensorflow as tf
 
 
 def test_build_conv_lstm_ioshape():
@@ -9,9 +12,43 @@ def test_build_conv_lstm_ioshape():
     T = 5
     W = H = 200
     C = 1
-    inputs1 = tf.random.normal(shape=(B, T, W, H, C))
-    inputs2 = tf.random.normal(shape=(B, T, W, H, C))
-    outputs1 = model(inputs1)
-    outputs2 = model(inputs2)
-    assert outputs1.shape == (B,)
-    assert not np.all(np.isclose(outputs1.numpy(), outputs2.numpy()))
+    inputs = tf.random.normal(shape=(B, T, W, H, C))
+    outputs = model(inputs)
+    assert outputs.shape == (B,)
+
+
+def test_convlstm_ioshape():
+    num_layers = 3
+    num_filters = 64
+    output_scale = 1000
+    model = ConvLSTM(
+        num_layers=num_layers, num_filters=num_filters, output_scale=output_scale
+    )
+    B = 128
+    T = 5
+    W = H = 50
+    C = 1
+    inputs = tf.random.normal(shape=(B, T, W, H, C))
+    outputs = model(inputs)
+    assert outputs.shape == (B,)
+
+
+def test_convlstm_save_load():
+    path = Path(".").joinpath("test_save_dir")
+    num_layers = 3
+    num_filters = 64
+    output_scale = 1000
+    model = ConvLSTM(
+        num_layers=num_layers, num_filters=num_filters, output_scale=output_scale
+    )
+    B = 128
+    T = 5
+    W = H = 50
+    C = 1
+    inputs = tf.random.normal(shape=(B, T, W, H, C))
+    outputs = model(inputs)
+    model.save(path)
+    loaded_model = keras.models.load_model(path)
+    loaded_outputs = loaded_model(inputs)
+    assert np.all(outputs.numpy() == loaded_outputs.numpy())
+    shutil.rmtree(path)

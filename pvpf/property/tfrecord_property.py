@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List, Tuple
 
 from pvpf.preprocessor.preprocessor import Preprocessor
+from pvpf.constants import PROJECT_ROOT
 
 
 @dataclass
@@ -31,7 +32,7 @@ class TFRecordProperty:
 
     @property
     def dir_path(self) -> Path:
-        return Path(".").joinpath("tfrecords", f"{self.name}-{self.plant_name}")
+        return PROJECT_ROOT.joinpath("tfrecords", f"{self.name}-{self.plant_name}")
 
     def __post_init__(self):
         feature_names = set(self.feature_names)
