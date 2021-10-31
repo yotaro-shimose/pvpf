@@ -39,6 +39,8 @@ def test_load_dataset():
     feature_path2 = path.joinpath("feature", "segment1.tfrecord")
     feature_dataset1 = tf.data.Dataset.range(12)
     feature_dataset2 = tf.data.Dataset.range(12, 24)
+    feature_dataset1 = feature_dataset1.map(lambda x: tf.reshape(x, (1,)))
+    feature_dataset2 = feature_dataset2.map(lambda x: tf.reshape(x, (1,)))
     write_tfrecord(feature_path1, feature_dataset1)
     write_tfrecord(feature_path2, feature_dataset2)
     target_path1 = path.joinpath("target", "segment0.tfrecord")
@@ -60,12 +62,12 @@ def test_load_dataset():
     train_feature, test_feature, train_target, test_target = load_dataset(train_prop)
     for i, feature, target in zip(range(5, 10), train_feature, train_target):
         assert feature.numpy().tolist() == [
-            i - (window - 1) - delta + j for j in range(window)
+            [i - (window - 1) - delta + j] for j in range(window)
         ]
         assert target.numpy().tolist() == i
     for i, feature, target in zip(range(10, 16), test_feature, test_target):
         assert feature.numpy().tolist() == [
-            i - (window - 1) - delta + j for j in range(window)
+            [i - (window - 1) - delta + j] for j in range(window)
         ]
         assert target.numpy().tolist() == i
 
