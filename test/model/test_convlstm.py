@@ -21,8 +21,12 @@ def test_convlstm_ioshape():
     num_layers = 3
     num_filters = 64
     output_scale = 1000
+    dim_cushion = 64
     model = ConvLSTM(
-        num_layers=num_layers, num_filters=num_filters, output_scale=output_scale
+        num_layers=num_layers,
+        num_filters=num_filters,
+        output_scale=output_scale,
+        dim_cushion=dim_cushion,
     )
     B = 128
     T = 5
@@ -38,8 +42,12 @@ def test_convlstm_save_load():
     num_layers = 3
     num_filters = 64
     output_scale = 1000
+    dim_cushion = 64
     model = ConvLSTM(
-        num_layers=num_layers, num_filters=num_filters, output_scale=output_scale
+        num_layers=num_layers,
+        num_filters=num_filters,
+        output_scale=output_scale,
+        dim_cushion=dim_cushion,
     )
     B = 128
     T = 5

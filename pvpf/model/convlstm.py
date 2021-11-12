@@ -6,12 +6,19 @@ import tensorflow as tf
 @keras.utils.register_keras_serializable(package=KERAS_PACKAGE_NAME, name="ConvLSTM")
 class ConvLSTM(keras.Model):
     def __init__(
-        self, num_layers: int, num_filters: int, output_scale: float, *args, **kwargs
+        self,
+        num_layers: int,
+        num_filters: int,
+        output_scale: float,
+        dim_cushion: int,
+        *args,
+        **kwargs
     ):
         super().__init__(*args, **kwargs)
         self._num_layers = num_layers
         self._num_filters = num_filters
         self._output_scale = output_scale
+        self._dim_cushion = dim_cushion
         self._layers = list()
         for i in range(num_layers):
             self._layers.append(keras.layers.LayerNormalization())
@@ -24,6 +31,7 @@ class ConvLSTM(keras.Model):
                 )
             )
         self._pooling = keras.layers.GlobalAveragePooling2D()
+        self._cushion_dense = keras.layers.Dense(dim_cushion, activation="relu")
         self._final_dense = keras.layers.Dense(1)
         self._final_reshape = keras.layers.Reshape(target_shape=())
 
@@ -31,6 +39,7 @@ class ConvLSTM(keras.Model):
         for layer in self._layers:
             x = layer(x)
         x = self._pooling(x)
+        x = self._cushion_dense(x)
         x = self._final_dense(x)
         x = self._final_reshape(x)
         x = x * self._output_scale
@@ -42,6 +51,7 @@ class ConvLSTM(keras.Model):
             "num_layers": self._num_layers,
             "num_filters": self._num_filters,
             "ouput_scale": self._output_scale,
+            "dim_cushion": self._dim_cushion,
         }
         config.update(custom_config)
         return config

@@ -32,6 +32,15 @@ test_token = TrainingProperty(
     window=3,
 )
 
+rf_test_token = TrainingProperty(
+    small_tfrecord_token,
+    datetime(2020, 4, 1, 4, 0, 0),
+    datetime(2021, 4, 1, 10, 0, 0),
+    datetime(2021, 4, 1, 15, 0, 0),
+    delta=1,
+    window=1,
+)
+
 
 def with_delta(delta: int) -> TrainingProperty:
     window = 3
@@ -50,4 +59,5 @@ TRAINING_TOKENS: Dict[str, TrainingProperty] = {
     "base": base_token,
     "small": small_token,
     "test": test_token,
+    "rf_test": rf_test_token,
 }

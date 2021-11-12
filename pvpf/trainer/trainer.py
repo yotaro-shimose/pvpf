@@ -11,6 +11,7 @@ class TrainingConfig(TypedDict):
     num_layers: int
     num_filters: int
     output_scale: float
+    dim_cushion: int
     batch_size: int
     num_epochs: int
     learning_rate: float
@@ -23,7 +24,10 @@ def tune_trainer(config: TrainingConfig, checkpoint_dir: str = None):
         model: keras.models.Model = keras.models.load_model(checkpoint_dir)
     else:
         model = ConvLSTM(
-            config["num_layers"], config["num_filters"], config["output_scale"]
+            config["num_layers"],
+            config["num_filters"],
+            config["output_scale"],
+            config["dim_cushion"],
         )
     train_x, test_x, train_y, test_y = load_dataset(config["training_property"])
     train_dataset = tf.data.Dataset.zip((train_x, train_y))
@@ -33,6 +37,8 @@ def tune_trainer(config: TrainingConfig, checkpoint_dir: str = None):
         config["shuffle_buffer"], reshuffle_each_iteration=True
     )
     test_dataset = test_dataset.batch(config["batch_size"])
+    x, y = next(iter(test_dataset))
+    print(f"x_shape: {x.shape} y_shape: {y.shape}")
 
     optimizer = keras.optimizers.Adam(learning_rate=config["learning_rate"])
     model.compile(optimizer=optimizer, loss="mse", metrics=["mae"])
