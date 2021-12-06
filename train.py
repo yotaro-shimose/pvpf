@@ -12,7 +12,7 @@ if __name__ == "__main__":
         dim_cushion=256,
         batch_size=128,
         num_epochs=30,
-        learning_rate=tune.grid_search([1e-4, 3e-4, 1e-3, 3e-3]),
+        learning_rate=tune.grid_search([1e-4, 1e-2]),
         training_property=token,
         shuffle_buffer=500,  # carefully set this value to avoid OOM
     )

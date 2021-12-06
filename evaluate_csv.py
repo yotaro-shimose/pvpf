@@ -5,16 +5,18 @@ from pvpf.token.training_token import TRAINING_TOKENS
 
 prop = TRAINING_TOKENS["base"]
 paths = list()
-paths.append(Path(".").joinpath("output", "oct1_0.csv"))
 paths.append(Path(".").joinpath("output", "oct1_1.csv"))
-paths.append(Path(".").joinpath("output", "oct1_2.csv"))
 for path in paths:
     df = pd.read_csv(path)
     df.loc[:, "datetime"] = pd.to_datetime(df.loc[:, "datetime"])
+    train_pred = df.loc[df["datetime"] < prop.prediction_split, "prediction"]
+    train_target = df.loc[df["datetime"] < prop.prediction_split, "target"]
     test_pred = df.loc[df["datetime"] >= prop.prediction_split, "prediction"]
     test_target = df.loc[df["datetime"] >= prop.prediction_split, "target"]
-    error_rate = compute_error_rate(test_pred, test_target)
+    train_error = compute_error_rate(train_pred, train_target)
+    test_error = compute_error_rate(test_pred, test_target)
     rmse = compute_rmse(test_pred, test_target)
     print("*" * 10 + str(path) + "*" * 10)
-    print(f"Error Rate: {error_rate}")
+    print(f"train_error: {train_error}")
+    print(f"test_error: {test_error}")
     print(f"RMSE: {rmse}")

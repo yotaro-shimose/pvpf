@@ -1,18 +1,18 @@
 from datetime import datetime
+from pathlib import Path
 from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from sklearn.ensemble import RandomForestRegressor
-
 from pvpf.constants import OUTPUT_ROOT
 from pvpf.property.training_property import RFTrainingProperty
 from pvpf.tfrecord.high_level import load_dataset
 from pvpf.utils.center_crop import center_crop
+from pvpf.utils.dataset_to_numpy import dataset_to_numpy
 from pvpf.utils.indicator import compute_error_rate
 from pvpf.validation.to_csv import to_csv
-from pathlib import Path
+from sklearn.ensemble import RandomForestRegressor
 
 
 def _create_trial_name() -> str:
@@ -20,10 +20,6 @@ def _create_trial_name() -> str:
     now_string = now.strftime("%Y:%m:%d-%H:%M:%S")
     ans = f"rf_{now_string}"
     return ans
-
-
-def _aggregate(dataset: tf.data.Dataset) -> np.ndarray:
-    return np.stack([np.array(val) for val in dataset], axis=0)
 
 
 def _center_crop_tf(tensor: tf.Tensor, size: Tuple[int, int]) -> tf.Tensor:
@@ -77,7 +73,7 @@ def load_rf_dataset(
         test_target,
     ]
 
-    datasets = tuple(_aggregate(dataset) for dataset in datasets)
+    datasets = tuple(dataset_to_numpy(dataset) for dataset in datasets)
     return datasets
 
 

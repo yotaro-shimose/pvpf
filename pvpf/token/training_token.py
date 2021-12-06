@@ -34,9 +34,27 @@ test_token = TrainingProperty(
 
 rf_test_token = TrainingProperty(
     small_tfrecord_token,
-    datetime(2020, 4, 1, 4, 0, 0),
+    datetime(2021, 4, 1, 4, 0, 0),
     datetime(2021, 4, 1, 10, 0, 0),
     datetime(2021, 4, 1, 15, 0, 0),
+    delta=1,
+    window=1,
+)
+
+rf_token = TrainingProperty(
+    small_tfrecord_token,
+    datetime(2020, 4, 1, 4, 0, 0),
+    datetime(2021, 4, 1, 10, 0, 0),
+    datetime(2021, 7, 1, 0, 0, 0),
+    delta=1,
+    window=1,
+)
+
+rf_token_preaugumented = TrainingProperty(
+    small_tfrecord_token,
+    datetime(2020, 4, 1, 4, 0, 0),
+    datetime(2021, 1, 1, 10, 0, 0),
+    datetime(2021, 4, 1, 0, 0, 0),
     delta=1,
     window=1,
 )
@@ -60,4 +78,6 @@ TRAINING_TOKENS: Dict[str, TrainingProperty] = {
     "small": small_token,
     "test": test_token,
     "rf_test": rf_test_token,
+    "rf": rf_token,
+    "rf_preaugumented": rf_token_preaugumented,
 }

@@ -1,11 +1,9 @@
 import shutil
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 import tensorflow as tf
 from pvpf.constants import ORIGINAL_IMAGE_SIZE
-from pvpf.preprocessor.cycle_encoder import CycleEncoder
-from pvpf.property.tfrecord_property import TFRecordProperty
 from pvpf.tfrecord.io import (
     _load_image_feature,
     _load_image_features,
