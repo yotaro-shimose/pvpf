@@ -120,7 +120,7 @@ def fetch_cloud_feature_with_linear_interpolation(
         right = None
         while right is None:
             right_step += 1
-            right_dt = dt - timedelta(minutes=10 * right_step)
+            right_dt = dt + timedelta(minutes=10 * right_step)
             try:
                 right = fetch_cloud_feature(right_dt, size, feature_names)
             except Exception:
