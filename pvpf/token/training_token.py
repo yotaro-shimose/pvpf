@@ -1,8 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict
-from pvpf.token.tfrecord_token import TFRECORD_TOKENS
+
 from pvpf.property.training_property import TrainingProperty
-from datetime import timedelta
+from pvpf.token.tfrecord_token import TFRECORD_TOKENS
+from pvpf.utils.generate_mask import must_generate_daytime
 
 base_tfrecord_token = TFRECORD_TOKENS["base"]
 base_token = TrainingProperty(
@@ -21,6 +22,19 @@ small_token = TrainingProperty(
     datetime(2021, 7, 1, 0, 0, 0),
     delta=1,
     window=3,
+)
+
+start = datetime(2020, 4, 1, 4, 0, 0)
+split = datetime(2021, 4, 1, 0, 0, 0)
+end = datetime(2021, 7, 1, 0, 0, 0)
+masked_small_token = TrainingProperty(
+    small_tfrecord_token,
+    start,
+    split,
+    end,
+    delta=1,
+    window=3,
+    datetime_mask=must_generate_daytime(small_tfrecord_token, start, end),
 )
 
 test_token = TrainingProperty(
@@ -80,4 +94,5 @@ TRAINING_TOKENS: Dict[str, TrainingProperty] = {
     "rf_test": rf_test_token,
     "rf": rf_token,
     "rf_preaugumented": rf_token_preaugumented,
+    "masked_small": masked_small_token,
 }

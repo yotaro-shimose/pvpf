@@ -53,19 +53,16 @@ def _split_mask(train_prop: TrainingProperty) -> Tuple[List[bool], List[bool]]:
 def load_dataset(
     train_prop: TrainingProperty,
 ) -> Tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset, tf.data.Dataset]:
-    # target
-    origin_target = _load_origin_target(train_prop)
+    train_feature, test_feature = load_feature_dataset(train_prop)
+    train_target, test_target = load_target_dataset(train_prop)
+    return train_feature, test_feature, train_target, test_target
 
-    num_init_skip = count_hours(
-        train_prop.tfrecord_property.start, train_prop.prediction_start
-    )
+
+def load_feature_dataset(
+    train_prop: TrainingProperty,
+) -> Tuple[tf.data.Dataset, tf.data.Dataset]:
     num_train = count_hours(train_prop.prediction_start, train_prop.prediction_split)
     num_test = count_hours(train_prop.prediction_split, train_prop.prediction_end)
-
-    temp_target = origin_target.skip(num_init_skip)
-    train_target = temp_target.take(num_train)
-    test_target = temp_target.skip(num_train).take(num_test)
-
     # feature
     origin_feature = _load_origin_feature(train_prop)
     batch_feature = origin_feature.window(size=train_prop.window, shift=1).flat_map(
@@ -85,10 +82,31 @@ def load_dataset(
     if train_prop.datetime_mask is not None:
         train_mask, test_mask = _split_mask(train_prop)
         train_feature = _apply_mask(train_feature, train_mask)
-        train_target = _apply_mask(train_target, train_mask)
         test_feature = _apply_mask(test_feature, test_mask)
+    return train_feature, test_feature
+
+
+def load_target_dataset(
+    train_prop: TrainingProperty,
+) -> Tuple[tf.data.Dataset, tf.data.Dataset]:
+    # target
+    origin_target = _load_origin_target(train_prop)
+
+    num_init_skip = count_hours(
+        train_prop.tfrecord_property.start, train_prop.prediction_start
+    )
+    num_train = count_hours(train_prop.prediction_start, train_prop.prediction_split)
+    num_test = count_hours(train_prop.prediction_split, train_prop.prediction_end)
+
+    temp_target = origin_target.skip(num_init_skip)
+    train_target = temp_target.take(num_train)
+    test_target = temp_target.skip(num_train).take(num_test)
+    # apply mask
+    if train_prop.datetime_mask is not None:
+        train_mask, test_mask = _split_mask(train_prop)
+        train_target = _apply_mask(train_target, train_mask)
         test_target = _apply_mask(test_target, test_mask)
-    return train_feature, test_feature, train_target, test_target
+    return train_target, test_target
 
 
 def create_tfrecord(prop: TFRecordProperty) -> Path:
