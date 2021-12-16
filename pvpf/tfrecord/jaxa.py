@@ -56,7 +56,6 @@ def cycle_datetime(dt: datetime, size: Tuple[int, int]) -> List[np.ndarray]:
 
 def to_numpy(
     dataset: NetCDFDataset,
-    dt: datetime,
     center: Tuple[int, int],
     size: Tuple[int, int],
     feature_names: List[str],
@@ -97,7 +96,7 @@ def fetch_cloud_feature(
 ) -> np.ndarray:
     ds_nc = fetch_netcdf(dt)
     center = center_index(ds_nc)
-    ans = to_numpy(ds_nc, dt, center, size, feature_names)
+    ans = to_numpy(ds_nc, center, size, feature_names)
     return ans
 
 
