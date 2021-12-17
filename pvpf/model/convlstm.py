@@ -1,4 +1,4 @@
-from typing import List, Optional, TypedDict
+from typing import List, Optional, Tuple, TypedDict
 
 import tensorflow as tf
 import tensorflow.keras as keras
@@ -100,11 +100,8 @@ class ConvLSTMImageEmbedder(keras.Model):
     package=KERAS_PACKAGE_NAME, name="ConvLSTMRegressor"
 )
 class ConvLSTMRegressor(keras.Model):
-    def __init__(
-        self,
-        block_params: List[ConvLSTMBlockParam],
-    ):
-        super().__init__()
+    def __init__(self, block_params: List[ConvLSTMBlockParam], *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._embedder = ConvLSTMImageEmbedder(block_params)
         self._dense = keras.layers.Dense(1)
 
@@ -113,3 +110,29 @@ class ConvLSTMRegressor(keras.Model):
         x = self._dense(x)
         x = tf.squeeze(x, -1)
         return x
+
+
+@keras.utils.register_keras_serializable(
+    package=KERAS_PACKAGE_NAME, name="TwoImageRegressor"
+)
+class TwoImageRegressor(keras.Model):
+    def __init__(
+        self,
+        lfm_block_params: List[ConvLSTMBlockParam],
+        jaxa_block_params: List[ConvLSTMBlockParam],
+        *args,
+        **kwargs,
+    ):
+        super().__init__(*args, **kwargs)
+        self._lfm_embedder = ConvLSTMImageEmbedder(lfm_block_params)
+        self._jaxa_embedder = ConvLSTMImageEmbedder(jaxa_block_params)
+        self._dense = keras.layers.Dense(1)
+
+    def call(self, two_image: Tuple[tf.Tensor, tf.Tensor]) -> tf.Tensor:
+        lfm, jaxa = two_image
+        lfm = self._lfm_embedder(lfm)
+        jaxa = self._jaxa_embedder(jaxa)
+        embedding = tf.concat([lfm, jaxa], axis=-1)
+        ans: tf.Tensor = self._dense(embedding)
+        ans = tf.squeeze(ans, axis=-1)
+        return ans
