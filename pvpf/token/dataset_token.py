@@ -1,12 +1,12 @@
 from datetime import datetime, timedelta
 from typing import Dict
 
-from pvpf.property.training_property import TrainingProperty
+from pvpf.property.dataset_property import DatasetProperty
 from pvpf.token.tfrecord_token import TFRECORD_TOKENS
 from pvpf.utils.generate_mask import must_generate_daytime
 
 base_tfrecord_token = TFRECORD_TOKENS["base"]
-base_token = TrainingProperty(
+base_token = DatasetProperty(
     base_tfrecord_token,
     datetime(2020, 4, 1, 4, 0, 0),
     datetime(2021, 1, 1, 0, 0, 0),
@@ -15,7 +15,7 @@ base_token = TrainingProperty(
     window=3,
 )
 small_tfrecord_token = TFRECORD_TOKENS["small"]
-small_token = TrainingProperty(
+small_token = DatasetProperty(
     small_tfrecord_token,
     datetime(2020, 4, 1, 4, 0, 0),
     datetime(2021, 4, 1, 0, 0, 0),
@@ -27,7 +27,7 @@ small_token = TrainingProperty(
 start = datetime(2020, 4, 1, 4, 0, 0)
 split = datetime(2021, 4, 1, 0, 0, 0)
 end = datetime(2021, 7, 1, 0, 0, 0)
-masked_small_token = TrainingProperty(
+masked_small_token = DatasetProperty(
     small_tfrecord_token,
     start,
     split,
@@ -37,7 +37,7 @@ masked_small_token = TrainingProperty(
     datetime_mask=must_generate_daytime(small_tfrecord_token, start, end),
 )
 
-test_token = TrainingProperty(
+test_token = DatasetProperty(
     small_tfrecord_token,
     datetime(2020, 4, 1, 4, 0, 0),
     datetime(2021, 4, 1, 10, 0, 0),
@@ -46,7 +46,7 @@ test_token = TrainingProperty(
     window=3,
 )
 
-rf_test_token = TrainingProperty(
+rf_test_token = DatasetProperty(
     small_tfrecord_token,
     datetime(2021, 4, 1, 4, 0, 0),
     datetime(2021, 4, 1, 10, 0, 0),
@@ -55,7 +55,7 @@ rf_test_token = TrainingProperty(
     window=1,
 )
 
-rf_token = TrainingProperty(
+rf_token = DatasetProperty(
     small_tfrecord_token,
     datetime(2020, 4, 1, 4, 0, 0),
     datetime(2021, 4, 1, 10, 0, 0),
@@ -64,7 +64,7 @@ rf_token = TrainingProperty(
     window=1,
 )
 
-rf_token_preaugumented = TrainingProperty(
+rf_token_preaugumented = DatasetProperty(
     small_tfrecord_token,
     datetime(2020, 4, 1, 4, 0, 0),
     datetime(2021, 1, 1, 10, 0, 0),
@@ -74,9 +74,9 @@ rf_token_preaugumented = TrainingProperty(
 )
 
 
-def with_delta(delta: int) -> TrainingProperty:
+def with_delta(delta: int) -> DatasetProperty:
     window = 3
-    token = TrainingProperty(
+    token = DatasetProperty(
         base_tfrecord_token,
         datetime(2020, 4, 1, 0, 0, 0) + timedelta(hours=window + delta),
         datetime(2021, 1, 1, 0, 0, 0),
@@ -87,7 +87,7 @@ def with_delta(delta: int) -> TrainingProperty:
     return token
 
 
-TRAINING_TOKENS: Dict[str, TrainingProperty] = {
+TRAINING_TOKENS: Dict[str, DatasetProperty] = {
     "base": base_token,
     "small": small_token,
     "test": test_token,

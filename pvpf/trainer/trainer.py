@@ -2,7 +2,7 @@ from typing import Callable, Tuple, TypedDict
 
 import tensorflow as tf
 import tensorflow.keras as keras
-from pvpf.property.training_property import TrainingProperty
+from pvpf.property.dataset_property import DatasetProperty
 from pvpf.tfrecord.high_level import load_dataset
 from pvpf.utils.normalize_dataset import normalize_dataset
 from ray.tune.integration.keras import TuneReportCheckpointCallback
@@ -18,7 +18,7 @@ class TrainingConfig(TypedDict):
     batch_size: int
     num_epochs: int
     learning_rate: float
-    training_property: TrainingProperty
+    training_property: DatasetProperty
     shuffle_buffer: int
 
 
@@ -54,7 +54,7 @@ def setup_model(
 
 
 def setup_dataset(
-    prop: TrainingProperty,
+    prop: DatasetProperty,
     batch_size: int,
     shuffle_buffer_size: int,
 ) -> Tuple[tf.data.Dataset, tf.data.Dataset]:

@@ -1,13 +1,13 @@
-from pvpf.property.training_property import TrainingProperty
-import tensorflow as tf
 import shutil
 from datetime import datetime, timedelta
+from pathlib import Path
 
+import tensorflow as tf
 from pvpf.preprocessor.cycle_encoder import CycleEncoder
+from pvpf.property.dataset_property import DatasetProperty
 from pvpf.property.tfrecord_property import TFRecordProperty
 from pvpf.tfrecord.high_level import create_tfrecord, load_dataset
 from pvpf.tfrecord.io import load_tfrecord, write_tfrecord
-from pathlib import Path
 
 feature_names = [
     "datetime",
@@ -51,7 +51,7 @@ def test_load_dataset():
     write_tfrecord(target_path2, target_dataset2)
     delta = 2
     window = 3
-    train_prop = TrainingProperty(
+    ds_prop = DatasetProperty(
         prop,
         datetime(2020, 4, 1, 5, 0, 0),
         datetime(2020, 4, 1, 10, 0, 0),
@@ -59,7 +59,7 @@ def test_load_dataset():
         delta,
         window=window,
     )
-    train_feature, test_feature, train_target, test_target = load_dataset(train_prop)
+    train_feature, test_feature, train_target, test_target = load_dataset(ds_prop)
     for i, feature, target in zip(range(5, 10), train_feature, train_target):
         assert feature.numpy().tolist() == [
             [i - (window - 1) - delta + j] for j in range(window)
@@ -119,7 +119,7 @@ def test_load_dataset_with_mask():
         True,
         True,
     ]
-    train_prop = TrainingProperty(
+    ds_prop = DatasetProperty(
         prop,
         datetime(2020, 4, 1, 5, 0, 0),
         datetime(2020, 4, 1, 10, 0, 0),
@@ -128,7 +128,7 @@ def test_load_dataset_with_mask():
         window=window,
         datetime_mask=datetime_mask,
     )
-    train_feature, test_feature, train_target, test_target = load_dataset(train_prop)
+    train_feature, test_feature, train_target, test_target = load_dataset(ds_prop)
     masked_range = filter(lambda idx: datetime_mask[idx - 5], range(5, 10))
     for i, feature, target in zip(masked_range, train_feature, train_target):
         assert feature.numpy().tolist() == [

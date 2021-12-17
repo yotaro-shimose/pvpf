@@ -5,7 +5,7 @@ import numpy as np
 import tensorflow as tf
 import tensorflow.keras as keras
 from pvpf.constants import OUTPUT_ROOT
-from pvpf.property.training_property import TrainingProperty
+from pvpf.property.dataset_property import DatasetProperty
 from pvpf.tfrecord.high_level import load_dataset
 from pvpf.trainer.trainer import TrainingConfig
 from pvpf.utils.indicator import compute_error_rate
@@ -30,7 +30,7 @@ def get_prediction(
 
 
 def validate_analysis(
-    analysis: ExperimentAnalysis, train_prop: TrainingProperty, config: TrainingConfig
+    analysis: ExperimentAnalysis, dataset_prop: DatasetProperty, config: TrainingConfig
 ):
     trials = analysis.trials
     checkpoints = [
@@ -38,17 +38,19 @@ def validate_analysis(
         for trial in trials
     ]
     for checkpoint in checkpoints:
-        validate_checkpoint(checkpoint, train_prop, config["batch_size"])
+        validate_checkpoint(checkpoint, dataset_prop, config["batch_size"])
 
 
-def validate_checkpoint(checkpoint: str, train_prop: TrainingProperty, batch_size: int):
+def validate_checkpoint(
+    checkpoint: str, dataset_prop: DatasetProperty, batch_size: int
+):
     checkpoint_path = Path(checkpoint)
     assert checkpoint_path.is_dir()
 
     model_path = checkpoint_path.joinpath("checkpoint")
     model = keras.models.load_model(model_path)
 
-    train_x, test_x, train_y, test_y = load_dataset(train_prop)
+    train_x, test_x, train_y, test_y = load_dataset(dataset_prop)
     train_dataset = tf.data.Dataset.zip((train_x, train_y)).batch(batch_size=batch_size)
     test_dataset = tf.data.Dataset.zip((test_x, test_y)).batch(batch_size=batch_size)
 
@@ -64,4 +66,4 @@ def validate_checkpoint(checkpoint: str, train_prop: TrainingProperty, batch_siz
     prediction = np.concatenate([train_pred, test_pred], axis=0)
     target = np.concatenate([train_target, test_target])
 
-    to_csv(train_prop, output_path, prediction, target)
+    to_csv(dataset_prop, output_path, prediction, target)

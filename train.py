@@ -4,7 +4,7 @@ import tensorflow.keras as keras
 from ray import tune
 
 from pvpf.model.convlstm import ConvLSTMBlockParam, ConvLSTMRegressor
-from pvpf.token.training_token import TRAINING_TOKENS
+from pvpf.token.dataset_token import TRAINING_TOKENS
 from pvpf.trainer.trainer import ModelParam, TrainingConfig, tune_trainer
 from pvpf.validation.validate_analysis import validate_analysis
 

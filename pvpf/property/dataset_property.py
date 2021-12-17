@@ -7,7 +7,7 @@ from pvpf.utils.date_range import date_range
 
 
 @dataclass
-class TrainingProperty:
+class DatasetProperty:
     tfrecord_property: TFRecordProperty
     prediction_start: datetime
     prediction_split: datetime  # target dataset will be split into [start: split] and [split: end]
@@ -38,5 +38,5 @@ class TrainingProperty:
 
 @dataclass
 class RFTrainingProperty:
-    training_property: TrainingProperty
+    dataset_property: DatasetProperty
     image_size: Tuple[int, int]

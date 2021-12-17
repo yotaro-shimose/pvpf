@@ -1,8 +1,8 @@
 import shutil
 from datetime import datetime, timedelta
 
+from pvpf.property.dataset_property import DatasetProperty
 from pvpf.property.tfrecord_property import TFRecordProperty
-from pvpf.property.training_property import TrainingProperty
 from pvpf.tfrecord.high_level import load_feature_dataset
 from pvpf.tfrecord.jaxa import create_jaxa_tfrecord
 
@@ -17,7 +17,7 @@ def assert_create_jaxa_tfrecord(tfrecord_prop: TFRecordProperty):
     num_test = 24
     end = split + timedelta(hours=num_test)
     window = 3
-    train_prop = TrainingProperty(
+    ds_prop = DatasetProperty(
         tfrecord_prop,
         start,
         split,
@@ -25,12 +25,12 @@ def assert_create_jaxa_tfrecord(tfrecord_prop: TFRecordProperty):
         delta,
         window,
     )
-    train_dataset, test_dataset = load_feature_dataset(train_prop)
+    train_dataset, test_dataset = load_feature_dataset(ds_prop)
     train_count = 0
     for feature in train_dataset:
         train_count += 1
         assert feature.shape == (
-            train_prop.window,
+            ds_prop.window,
             *size,
             len(tfrecord_prop.feature_names),
         )
@@ -40,7 +40,7 @@ def assert_create_jaxa_tfrecord(tfrecord_prop: TFRecordProperty):
     for feature in test_dataset:
         test_count += 1
         assert feature.shape == (
-            train_prop.window,
+            ds_prop.window,
             *size,
             len(tfrecord_prop.feature_names),
         )

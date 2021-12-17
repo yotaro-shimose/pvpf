@@ -4,15 +4,16 @@ from typing import Tuple
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+import tensorflow.keras as keras
 
 from pvpf.tfrecord.high_level import load_dataset
-from pvpf.token.training_token import TRAINING_TOKENS
+from pvpf.token.dataset_token import TRAINING_TOKENS
 from pvpf.utils.date_range import date_range
 from pvpf.utils.indicator import compute_error_rate
 
 
 def get_prediction(
-    model: tf.keras.models.Model, dataset: tf.data.Dataset
+    model: keras.Model, dataset: tf.data.Dataset
 ) -> Tuple[np.ndarray, np.ndarray]:
     ys = list()
     ts = list()
@@ -31,10 +32,10 @@ def validate(trial_name: str):
     batch_size = 4
     output_path = Path(".").joinpath("output", trial_name)
     model_path = Path(".").joinpath("savedmodel", trial_name)
-    model: tf.keras.models.Model = tf.keras.models.load_model(model_path)
+    model: keras.Model = keras.models.load_model(model_path)
     model.summary()
-    train_prop = TRAINING_TOKENS["small"]
-    train_x, test_x, train_y, test_y = load_dataset(train_prop)
+    ds_prop = TRAINING_TOKENS["small"]
+    train_x, test_x, train_y, test_y = load_dataset(ds_prop)
     train_dataset = tf.data.Dataset.zip((train_x, train_y)).batch(batch_size=batch_size)
     test_dataset = tf.data.Dataset.zip((test_x, test_y)).batch(batch_size=batch_size)
     train_pred, train_target = get_prediction(model, train_dataset)
@@ -45,9 +46,9 @@ def validate(trial_name: str):
     target = np.concatenate([train_target, test_target])
     datetime = list(
         date_range(
-            train_prop.prediction_start,
-            train_prop.prediction_end,
-            train_prop.tfrecord_property.time_unit,
+            ds_prop.prediction_start,
+            ds_prop.prediction_end,
+            ds_prop.tfrecord_property.time_unit,
         )
     )
     df_dict = {"datetime": datetime, "prediction": prediction, "target": target}

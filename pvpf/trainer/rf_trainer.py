@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from pvpf.constants import OUTPUT_ROOT
-from pvpf.property.training_property import RFTrainingProperty
+from pvpf.property.dataset_property import RFTrainingProperty
 from pvpf.tfrecord.high_level import load_dataset
 from pvpf.utils.center_crop import center_crop
 from pvpf.utils.dataset_to_numpy import dataset_to_numpy
@@ -46,7 +46,7 @@ def _importance_csv(
     importance_file_name = "importance.csv"
     importance = model.feature_importances_
     feature_names = _2d_feature_labels(
-        prop.training_property.tfrecord_property.feature_names, prop.image_size
+        prop.dataset_property.tfrecord_property.feature_names, prop.image_size
     )
     importance_dict = {"feature_name": feature_names, "importance": importance}
     importance_path = trial_dir.joinpath(importance_file_name)
@@ -58,7 +58,7 @@ def load_rf_dataset(
     prop: RFTrainingProperty,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     train_feature, test_feature, train_target, test_target = load_dataset(
-        prop.training_property
+        prop.dataset_property
     )
     train_feature = train_feature.map(
         lambda tensor: _center_crop_tf(tensor, prop.image_size)
@@ -106,7 +106,7 @@ def validate_rf_result(
     target = np.concatenate([train_target, test_target], axis=0)
     output_file_name = "output.csv"
     output_path = trial_dir.joinpath(output_file_name)
-    to_csv(prop.training_property, output_path, prediction, target)
+    to_csv(prop.dataset_property, output_path, prediction, target)
     _importance_csv(prop, model, trial_dir)
 
 
