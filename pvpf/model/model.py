@@ -2,6 +2,8 @@ from typing import Callable, Dict, Any
 
 import tensorflow as tf
 import inspect
+from pvpf.constants import KERAS_PACKAGE_NAME
+import tensorflow.keras as keras
 
 
 def get_args(offset: int = None) -> Dict[str, Any]:
@@ -10,17 +12,17 @@ def get_args(offset: int = None) -> Dict[str, Any]:
     return {key: info.locals[key] for key in info.args[offset:]}
 
 
-PVPF = "PVPF"
-
 # Reference https://qiita.com/hima_zin331/items/2adba781bc4afaae5880
-@tf.keras.utils.register_keras_serializable(package=PVPF, name="ResidualBlock")
-class ResidualBlock(tf.keras.layers.Layer):
+@keras.utils.register_keras_serializable(
+    package=KERAS_PACKAGE_NAME, name="ResidualBlock"
+)
+class ResidualBlock(keras.layers.Layer):
     def __init__(self, in_channels: int, out_channels: int):
         super().__init__()
         self._args = get_args(offset=1)
         bneck_channels = out_channels // 4
-        self._bn1 = tf.keras.layers.BatchNormalization()
-        self._conv1 = tf.keras.layers.Conv2D(
+        self._bn1 = keras.layers.BatchNormalization()
+        self._conv1 = keras.layers.Conv2D(
             bneck_channels,
             kernel_size=1,
             strides=1,
@@ -28,8 +30,8 @@ class ResidualBlock(tf.keras.layers.Layer):
             use_bias=False,
         )
 
-        self._bn2 = tf.keras.layers.BatchNormalization()
-        self._conv2 = tf.keras.layers.Conv2D(
+        self._bn2 = keras.layers.BatchNormalization()
+        self._conv2 = keras.layers.Conv2D(
             bneck_channels,
             kernel_size=3,
             strides=1,
@@ -37,8 +39,8 @@ class ResidualBlock(tf.keras.layers.Layer):
             use_bias=False,
         )
 
-        self._bn3 = tf.keras.layers.BatchNormalization()
-        self._conv3 = tf.keras.layers.Conv2D(
+        self._bn3 = keras.layers.BatchNormalization()
+        self._conv3 = keras.layers.Conv2D(
             out_channels,
             kernel_size=1,
             strides=1,
@@ -53,8 +55,8 @@ class ResidualBlock(tf.keras.layers.Layer):
         self, in_channels: int, out_channels: int
     ) -> Callable[[tf.Tensor], tf.Tensor]:
         if in_channels != out_channels:
-            self.bn_sc1 = tf.keras.layers.BatchNormalization()
-            self.conv_sc1 = tf.keras.layers.Conv2D(
+            self.bn_sc1 = keras.layers.BatchNormalization()
+            self.conv_sc1 = keras.layers.Conv2D(
                 out_channels, kernel_size=1, strides=1, padding="same", use_bias=False
             )
             return self.conv_sc1
@@ -64,15 +66,16 @@ class ResidualBlock(tf.keras.layers.Layer):
     def call(self, x: tf.Tensor) -> tf.Tensor:
         shortcut = self._shortcut(x)
         x = self._bn1(x)
-        x = tf.keras.activations.relu(x)
+        x = keras.activations.relu(x)
         x = self._conv1(x)
         x = self._bn2(x)
-        x = tf.keras.activations.relu(x)
+        x = keras.activations.relu(x)
         x = self._conv2(x)
         x = self._bn3(x)
-        x = tf.keras.activations.relu(x)
+        x = keras.activations.relu(x)
         x = self._conv3(x)
         x = x + shortcut
+        x = x * 1000
         return x
 
     def get_config(self) -> Dict[str, Any]:
@@ -80,8 +83,8 @@ class ResidualBlock(tf.keras.layers.Layer):
 
 
 # ResNet50(Pre Activation)
-@tf.keras.utils.register_keras_serializable(PVPF, "ResNet")
-class ResNet(tf.keras.Model):
+@keras.utils.register_keras_serializable(KERAS_PACKAGE_NAME, "ResNet")
+class ResNet(keras.Model):
     def __init__(
         self,
         num_blocks: int,
@@ -94,9 +97,9 @@ class ResNet(tf.keras.Model):
         super().__init__()
         self._args = get_args(offset=1)
         self._layers = [
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.Activation(tf.nn.relu),
-            tf.keras.layers.Conv2D(
+            keras.layers.BatchNormalization(),
+            keras.layers.Activation(tf.nn.relu),
+            keras.layers.Conv2D(
                 base_channels,
                 kernel_size=7,
                 strides=2,
@@ -104,14 +107,14 @@ class ResNet(tf.keras.Model):
                 use_bias=False,
                 input_shape=input_shape,
             ),
-            tf.keras.layers.MaxPool2D(
+            keras.layers.MaxPool2D(
                 pool_size=pool_size, strides=strides, padding="same"
             ),
             *[ResidualBlock(base_channels, base_channels) for _ in range(num_blocks)],
-            tf.keras.layers.GlobalAveragePooling2D(),
-            tf.keras.layers.Dense(dim_hidden),
-            tf.keras.layers.Activation(tf.nn.relu),
-            tf.keras.layers.Dense(1),
+            keras.layers.GlobalAveragePooling2D(),
+            keras.layers.Dense(dim_hidden),
+            keras.layers.Activation(tf.nn.relu),
+            keras.layers.Dense(1),
         ]
 
     def call(self, x: tf.Tensor) -> tf.Tensor:

@@ -1,9 +1,11 @@
-from typing import Tuple
-
+from typing import Tuple, TypeVar, Union
 import numpy as np
+import tensorflow as tf
+
+T = TypeVar("T", bound=Union[np.ndarray, tf.Tensor])
 
 
-def center_crop(target: np.ndarray, image_size: Tuple[int, int]) -> np.ndarray:
+def center_crop(target: T, image_size: Tuple[int, int]) -> T:
     assert len(target.shape) == 4
     assert np.all(np.array(target.shape[1:3]) > np.array(image_size))
     left_edge = (target.shape[1] - image_size[0]) // 2

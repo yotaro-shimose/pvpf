@@ -17,3 +17,12 @@ tfrecords
 
 # TensorBoard
 logs
+
+# output files
+output
+
+# TensorflowSavedModel
+savedmodel
+
+# Nohup
+nohup.out
