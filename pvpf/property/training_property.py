@@ -1,7 +1,8 @@
 from dataclasses import dataclass
-from typing import Optional, Tuple, List
-from pvpf.property.tfrecord_property import TFRecordProperty
 from datetime import datetime
+from typing import List, Optional, Tuple
+
+from pvpf.property.tfrecord_property import TFRecordProperty
 from pvpf.utils.date_range import date_range
 
 

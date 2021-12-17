@@ -33,7 +33,6 @@ def _load_origin_target(train_prop: TrainingProperty) -> tf.data.Dataset:
 
 
 def _load_origin_feature(train_prop: TrainingProperty) -> tf.data.Dataset:
-    # feature
     feature_shape = train_prop.tfrecord_property.image_size + (
         len(train_prop.tfrecord_property.feature_names),
     )
@@ -63,7 +62,7 @@ def load_feature_dataset(
 ) -> Tuple[tf.data.Dataset, tf.data.Dataset]:
     num_train = count_hours(train_prop.prediction_start, train_prop.prediction_split)
     num_test = count_hours(train_prop.prediction_split, train_prop.prediction_end)
-    # feature
+
     origin_feature = _load_origin_feature(train_prop)
     batch_feature = origin_feature.window(size=train_prop.window, shift=1).flat_map(
         lambda x: x.batch(train_prop.window, drop_remainder=True)
@@ -89,18 +88,17 @@ def load_feature_dataset(
 def load_target_dataset(
     train_prop: TrainingProperty,
 ) -> Tuple[tf.data.Dataset, tf.data.Dataset]:
-    # target
-    origin_target = _load_origin_target(train_prop)
-
     num_init_skip = count_hours(
         train_prop.tfrecord_property.start, train_prop.prediction_start
     )
     num_train = count_hours(train_prop.prediction_start, train_prop.prediction_split)
     num_test = count_hours(train_prop.prediction_split, train_prop.prediction_end)
 
+    origin_target = _load_origin_target(train_prop)
     temp_target = origin_target.skip(num_init_skip)
     train_target = temp_target.take(num_train)
     test_target = temp_target.skip(num_train).take(num_test)
+
     # apply mask
     if train_prop.datetime_mask is not None:
         train_mask, test_mask = _split_mask(train_prop)
