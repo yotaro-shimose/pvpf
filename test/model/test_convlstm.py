@@ -6,8 +6,7 @@ import numpy as np
 import pytest
 import tensorflow as tf
 import tensorflow.keras as keras
-from pvpf.model.convlstm import (ConvLSTMBlockParam, ConvLSTMRegressor,
-                                 TwoImageRegressor)
+from pvpf.model.convlstm import ConvLSTMBlockParam, ConvLSTMRegressor, TwoImageRegressor
 
 
 @pytest.fixture
@@ -26,7 +25,8 @@ def build_convlstm_regressor():
         ConvLSTMBlockParam(num_filters=512, kernel_size=2, pooling=2),
         ConvLSTMBlockParam(num_filters=512, kernel_size=2, pooling=None),
     ]
-    model = ConvLSTMRegressor(block_params)
+    l2 = None
+    model = ConvLSTMRegressor(block_params, l2)
     return model
 
 
@@ -45,7 +45,8 @@ def build_two_image_regressor():
         ConvLSTMBlockParam(num_filters=512, kernel_size=2, pooling=2),
         ConvLSTMBlockParam(num_filters=512, kernel_size=2, pooling=None),
     ]
-    model = TwoImageRegressor(lfm_params, jaxa_params)
+    l2 = None
+    model = TwoImageRegressor(lfm_params, jaxa_params, l2)
     return model
 
 

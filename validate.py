@@ -7,7 +7,7 @@ import tensorflow as tf
 import tensorflow.keras as keras
 
 from pvpf.tfrecord.high_level import load_dataset
-from pvpf.token.dataset_token import TRAINING_TOKENS
+from pvpf.token.dataset_token import DATASET_TOKENS
 from pvpf.utils.date_range import date_range
 from pvpf.utils.indicator import compute_error_rate
 
@@ -34,7 +34,7 @@ def validate(trial_name: str):
     model_path = Path(".").joinpath("savedmodel", trial_name)
     model: keras.Model = keras.models.load_model(model_path)
     model.summary()
-    ds_prop = TRAINING_TOKENS["small"]
+    ds_prop = DATASET_TOKENS["small"]
     train_x, test_x, train_y, test_y = load_dataset(ds_prop)
     train_dataset = tf.data.Dataset.zip((train_x, train_y)).batch(batch_size=batch_size)
     test_dataset = tf.data.Dataset.zip((test_x, test_y)).batch(batch_size=batch_size)

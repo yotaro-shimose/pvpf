@@ -73,21 +73,22 @@ rf_token_preaugumented = DatasetProperty(
     window=1,
 )
 
+jaxa_tfrecord_token = TFRECORD_TOKENS["jaxa"]
+start = datetime(2020, 4, 1, 4, 0, 0)
+split = datetime(2021, 4, 1, 0, 0, 0)
+end = datetime(2021, 7, 1, 0, 0, 0)
+masked_jaxa_token = DatasetProperty(
+    jaxa_tfrecord_token,
+    start,
+    split,
+    end,
+    delta=1,
+    window=3,
+    datetime_mask=must_generate_daytime(small_tfrecord_token, start, end),
+)
 
-def with_delta(delta: int) -> DatasetProperty:
-    window = 3
-    token = DatasetProperty(
-        base_tfrecord_token,
-        datetime(2020, 4, 1, 0, 0, 0) + timedelta(hours=window + delta),
-        datetime(2021, 1, 1, 0, 0, 0),
-        datetime(2021, 4, 1, 0, 0, 0),
-        delta=delta,
-        window=3,
-    )
-    return token
 
-
-TRAINING_TOKENS: Dict[str, DatasetProperty] = {
+DATASET_TOKENS: Dict[str, DatasetProperty] = {
     "base": base_token,
     "small": small_token,
     "test": test_token,
@@ -95,4 +96,5 @@ TRAINING_TOKENS: Dict[str, DatasetProperty] = {
     "rf": rf_token,
     "rf_preaugumented": rf_token_preaugumented,
     "masked_small": masked_small_token,
+    "masked_jaxa": masked_jaxa_token,
 }
