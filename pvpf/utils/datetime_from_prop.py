@@ -1,11 +1,11 @@
 from datetime import datetime
 from typing import List
 
-from pvpf.property.training_property import TrainingProperty
+from pvpf.property.dataset_property import DatasetProperty
 from pvpf.utils.date_range import date_range
 
 
-def datetime_from_prop(prop: TrainingProperty) -> List[datetime]:
+def datetime_from_prop(prop: DatasetProperty) -> List[datetime]:
     ans = date_range(
         prop.prediction_start, prop.prediction_end, prop.tfrecord_property.time_unit
     )

@@ -1,4 +1,4 @@
-from typing import List, Optional, TypedDict
+from typing import List, Optional, Tuple, TypedDict
 
 import tensorflow as tf
 import tensorflow.keras as keras
@@ -21,6 +21,7 @@ class ConvLSTMBlock(keras.Model):
         kernel_size: int,
         pooling: int,
         return_sequences: Optional[bool],
+        l2: Optional[float],
         *args,
         **kwargs,
     ):
@@ -30,8 +31,16 @@ class ConvLSTMBlock(keras.Model):
         self._pooling = pooling
         self._return_sequences = return_sequences
         self._layer_norm = keras.layers.LayerNormalization()
+        if l2 is not None:
+            regularizer = keras.regularizers.l2(l2)
+        else:
+            regularizer = None
         self._convlstm = keras.layers.ConvLSTM2D(
-            num_filters, kernel_size, return_sequences=return_sequences, padding="same"
+            num_filters,
+            kernel_size,
+            return_sequences=return_sequences,
+            padding="same",
+            kernel_regularizer=regularizer,
         )
         self._pooling = (
             keras.layers.MaxPool3D(pool_size=(1, pooling, pooling))
@@ -64,6 +73,7 @@ class ConvLSTMImageEmbedder(keras.Model):
     def __init__(
         self,
         block_params: List[ConvLSTMBlockParam],
+        l2: Optional[float],
         *args,
         **kwargs,
     ):
@@ -71,7 +81,9 @@ class ConvLSTMImageEmbedder(keras.Model):
         super().__init__(*args, **kwargs)
         self._block_params = block_params
         self._block_layers = [
-            ConvLSTMBlock(**param, return_sequences=(idx != len(block_params) - 1))
+            ConvLSTMBlock(
+                **param, return_sequences=(idx != len(block_params) - 1), l2=l2
+            )
             for idx, param in enumerate(block_params)
         ]
         self._flatten_layer = keras.layers.Flatten()
@@ -103,9 +115,12 @@ class ConvLSTMRegressor(keras.Model):
     def __init__(
         self,
         block_params: List[ConvLSTMBlockParam],
+        l2: Optional[float],
+        *args,
+        **kwargs,
     ):
-        super().__init__()
-        self._embedder = ConvLSTMImageEmbedder(block_params)
+        super().__init__(*args, **kwargs)
+        self._embedder = ConvLSTMImageEmbedder(block_params, l2)
         self._dense = keras.layers.Dense(1)
 
     def call(self, x: tf.Tensor) -> tf.Tensor:
@@ -113,3 +128,30 @@ class ConvLSTMRegressor(keras.Model):
         x = self._dense(x)
         x = tf.squeeze(x, -1)
         return x
+
+
+@keras.utils.register_keras_serializable(
+    package=KERAS_PACKAGE_NAME, name="TwoImageRegressor"
+)
+class TwoImageRegressor(keras.Model):
+    def __init__(
+        self,
+        lfm_block_params: List[ConvLSTMBlockParam],
+        jaxa_block_params: List[ConvLSTMBlockParam],
+        l2: Optional[float],
+        *args,
+        **kwargs,
+    ):
+        super().__init__(*args, **kwargs)
+        self._lfm_embedder = ConvLSTMImageEmbedder(lfm_block_params, l2)
+        self._jaxa_embedder = ConvLSTMImageEmbedder(jaxa_block_params, l2)
+        self._dense = keras.layers.Dense(1)
+
+    def call(self, two_image: Tuple[tf.Tensor, tf.Tensor]) -> tf.Tensor:
+        lfm, jaxa = two_image
+        lfm = self._lfm_embedder(lfm)
+        jaxa = self._jaxa_embedder(jaxa)
+        embedding = tf.concat([lfm, jaxa], axis=-1)
+        ans: tf.Tensor = self._dense(embedding)
+        ans = tf.squeeze(ans, axis=-1)
+        return ans

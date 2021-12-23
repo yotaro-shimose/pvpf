@@ -1,9 +1,11 @@
 from pathlib import Path
-import pandas as pd
-from pvpf.utils.indicator import compute_error_rate, compute_rmse
-from pvpf.token.training_token import TRAINING_TOKENS
 
-prop = TRAINING_TOKENS["base"]
+import pandas as pd
+
+from pvpf.token.dataset_token import DATASET_TOKENS
+from pvpf.utils.indicator import compute_error_rate, compute_rmse
+
+prop = DATASET_TOKENS["base"]
 paths = list()
 paths.append(Path(".").joinpath("output", "oct1_1.csv"))
 for path in paths:
