@@ -5,6 +5,7 @@ from pvpf.property.dataset_property import DatasetProperty
 from pvpf.property.model_property import ModelProperty
 from pvpf.utils.setup_dataset import setup_dataset
 from ray.tune.integration.keras import TuneReportCheckpointCallback
+import tensorflow as tf
 
 
 class TrainingConfig(TypedDict):
@@ -32,6 +33,7 @@ def tune_trainer(config: TrainingConfig, checkpoint_dir: str = None):
     callbacks = list()
     tune_report_callback = TuneReportCheckpointCallback(frequency=1)
     callbacks.append(tune_report_callback)
+    summarize(model, train_dataset)
     model.fit(
         train_dataset,
         validation_data=test_dataset,
@@ -50,3 +52,9 @@ def setup_model(
     else:
         model = model_class(**model_prop)
     return model
+
+
+def summarize(model: keras.Model, train_dataset: tf.data.Dataset):
+    model_input, _ = next(iter(train_dataset))
+    model(model_input)
+    model.summary()

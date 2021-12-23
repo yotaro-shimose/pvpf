@@ -18,9 +18,9 @@ if __name__ == "__main__":
         target_dataset_property=target_dataset_property,
         model_class=model_class,
         model_prop=model_prop,
-        batch_size=128,
-        num_epochs=1,
-        learning_rate=tune.grid_search([1e-4]),
+        batch_size=64,
+        num_epochs=10,
+        learning_rate=tune.grid_search([1e-3, 1e-2]),
         shuffle_buffer=500,  # carefully set this value to avoid OOM
     )
     resources_per_trial = {"cpu": 5, "gpu": 2}
