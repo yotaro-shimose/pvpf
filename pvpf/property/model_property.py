@@ -3,14 +3,14 @@ from typing import List, TypedDict
 from pvpf.model.convlstm import ConvLSTMBlockParam
 
 
-class ModelProperty(TypedDict):
+class ModelArgs(TypedDict):
     pass
 
 
-class ConvLSTMRegressorProperty(ModelProperty):
+class ConvLSTMRegressorProperty(ModelArgs):
     block_params: List[ConvLSTMBlockParam]
 
 
-class TwoImageRegressorProperty(ModelProperty):
+class TwoImageRegressorProperty(ModelArgs):
     lfm_block_params: List[ConvLSTMBlockParam]
     jaxa_block_params: List[ConvLSTMBlockParam]

@@ -1,18 +1,18 @@
 from typing import List, Type, TypedDict
 
+import tensorflow as tf
 import tensorflow.keras as keras
 from pvpf.property.dataset_property import DatasetProperty
-from pvpf.property.model_property import ModelProperty
+from pvpf.property.model_property import ModelArgs
 from pvpf.utils.setup_dataset import setup_dataset
 from ray.tune.integration.keras import TuneReportCheckpointCallback
-import tensorflow as tf
 
 
 class TrainingConfig(TypedDict):
     feature_dataset_properties: List[DatasetProperty]
     target_dataset_property: DatasetProperty
     model_class: Type[keras.Model]
-    model_prop: ModelProperty
+    model_args: ModelArgs
     batch_size: int
     num_epochs: int
     learning_rate: float
@@ -20,7 +20,7 @@ class TrainingConfig(TypedDict):
 
 
 def tune_trainer(config: TrainingConfig, checkpoint_dir: str = None):
-    model = setup_model(config["model_class"], config["model_prop"], checkpoint_dir)
+    model = setup_model(config["model_class"], config["model_args"], checkpoint_dir)
     train_dataset, test_dataset = setup_dataset(
         config["feature_dataset_properties"],
         config["target_dataset_property"],
@@ -44,13 +44,13 @@ def tune_trainer(config: TrainingConfig, checkpoint_dir: str = None):
 
 def setup_model(
     model_class: Type[keras.Model],
-    model_prop: ModelProperty,
+    model_args: ModelArgs,
     checkpoint_dir: str,
 ):
     if checkpoint_dir is not None:
         model: keras.models.Model = keras.models.load_model(checkpoint_dir)
     else:
-        model = model_class(**model_prop)
+        model = model_class(**model_args)
     return model
 
 

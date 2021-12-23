@@ -31,10 +31,10 @@ def get_prediction(
 
 def validate_analysis(
     analysis: ExperimentAnalysis,
-    feature_props: List[DatasetProperty],
-    target_prop: DatasetProperty,
     config: TrainingConfig,
 ):
+    feature_props = config["feature_dataset_properties"]
+    target_prop = config["target_dataset_property"]
     trials = analysis.trials
     checkpoints = [
         analysis.get_best_checkpoint(trial, metric="val_mae", mode="min")
