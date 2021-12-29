@@ -35,20 +35,20 @@ two_image = ModelProperty(
     model_args=TwoImageRegressorProperty(
         lfm_block_params=[
             ConvLSTMBlockParam(num_filters=16, kernel_size=5, pooling=None),
+            ConvLSTMBlockParam(num_filters=32, kernel_size=4, pooling=2),
+            ConvLSTMBlockParam(num_filters=32, kernel_size=4, pooling=2),
             ConvLSTMBlockParam(num_filters=64, kernel_size=4, pooling=2),
-            ConvLSTMBlockParam(num_filters=128, kernel_size=4, pooling=2),
-            ConvLSTMBlockParam(num_filters=128, kernel_size=4, pooling=2),
-            ConvLSTMBlockParam(num_filters=256, kernel_size=3, pooling=4),
-            ConvLSTMBlockParam(num_filters=256, kernel_size=2, pooling=None),
+            ConvLSTMBlockParam(num_filters=64, kernel_size=3, pooling=4),
+            ConvLSTMBlockParam(num_filters=64, kernel_size=2, pooling=None),
         ],
         jaxa_block_params=[
             ConvLSTMBlockParam(num_filters=16, kernel_size=5, pooling=None),
-            ConvLSTMBlockParam(num_filters=64, kernel_size=4, pooling=2),
-            ConvLSTMBlockParam(num_filters=128, kernel_size=4, pooling=2),
-            ConvLSTMBlockParam(num_filters=256, kernel_size=3, pooling=4),
-            ConvLSTMBlockParam(num_filters=256, kernel_size=2, pooling=None),
+            ConvLSTMBlockParam(num_filters=32, kernel_size=4, pooling=2),
+            ConvLSTMBlockParam(num_filters=32, kernel_size=4, pooling=2),
+            ConvLSTMBlockParam(num_filters=64, kernel_size=3, pooling=4),
+            ConvLSTMBlockParam(num_filters=64, kernel_size=2, pooling=None),
         ],
-        l2=tune.grid_search([1e-1, 1, 10]),
+        l2=tune.loguniform(1e-1, 100),
     ),
 )
 

@@ -7,6 +7,8 @@ from pvpf.property.model_property import ModelArgs
 from pvpf.utils.setup_dataset import setup_dataset
 from ray.tune.integration.keras import TuneReportCheckpointCallback
 
+from pathlib import Path
+
 
 class TrainingConfig(TypedDict):
     feature_dataset_properties: List[DatasetProperty]
@@ -20,6 +22,7 @@ class TrainingConfig(TypedDict):
 
 
 def tune_trainer(config: TrainingConfig, checkpoint_dir: str = None):
+
     model = setup_model(config["model_class"], config["model_args"], checkpoint_dir)
     train_dataset, test_dataset = setup_dataset(
         config["feature_dataset_properties"],
@@ -48,7 +51,8 @@ def setup_model(
     checkpoint_dir: str,
 ):
     if checkpoint_dir is not None:
-        model: keras.models.Model = keras.models.load_model(checkpoint_dir)
+        path = Path(checkpoint_dir).joinpath("checkpoint")
+        model: keras.models.Model = keras.models.load_model(path)
     else:
         model = model_class(**model_args)
     return model

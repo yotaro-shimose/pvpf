@@ -3,6 +3,8 @@ from typing import List, TypedDict, TypeVar
 
 from ray import tune
 from ray.tune.sample import Domain
+from ray.tune.schedulers import HyperBandForBOHB
+from ray.tune.suggest.bohb import TuneBOHB
 
 from pvpf.property.dataset_property import DatasetProperty
 from pvpf.token.dataset_token import DATASET_TOKENS
@@ -28,6 +30,8 @@ class TrainingController:
     learning_rate: SearchSpace
     shuffle_buffer: int
     resources_per_trial: ResourcesPerTrial
+    use_bohb: bool = False
+    num_samples: int = 1
 
     def run(self):
         model_class, model_args = (
@@ -45,9 +49,32 @@ class TrainingController:
             shuffle_buffer=self.shuffle_buffer,
         )
         resources_per_trial = self.resources_per_trial
+        if self.use_bohb:
+            metric = "val_mae"
+            mode = "min"
+            time_attr = "training_iteration"
+            algo = TuneBOHB(metric=metric, mode=mode)
+            bohb = HyperBandForBOHB(
+                time_attr=time_attr,
+                metric=metric,
+                mode=mode,
+                max_t=self.num_epochs,
+            )
+            scheduler = bohb
+            search_alg = algo
+        else:
+            scheduler = None
+            search_alg = None
         analysis = tune.run(
-            tune_trainer, config=config, resources_per_trial=resources_per_trial
+            tune_trainer,
+            config=config,
+            resources_per_trial=resources_per_trial,
+            scheduler=scheduler,
+            search_alg=search_alg,
+            num_samples=self.num_samples,
+            metric=metric,
         )
+        print(analysis.best_config)
         validate_analysis(
             analysis,
             config,
@@ -66,10 +93,12 @@ def main():
         feature_dataset_properties=feature_dataset_properties,
         target_dataset_property=target_dataset_property,
         batch_size=64,
-        num_epochs=10,
-        learning_rate=tune.grid_search([1e-3, 1e-2]),
+        num_epochs=20,
+        learning_rate=tune.loguniform(1e-4, 1e-3),
         shuffle_buffer=500,  # carefully set this value to avoid OOM
-        resources_per_trial={"cpu": 5, "gpu": 2},
+        resources_per_trial={"cpu": 6, "gpu": 1},
+        use_bohb=True,
+        num_samples=64,
     )
     controller.run()
 
