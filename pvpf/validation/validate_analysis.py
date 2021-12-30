@@ -1,3 +1,4 @@
+from datetime import datetime
 from pathlib import Path
 from typing import List, Tuple
 
@@ -33,6 +34,12 @@ def validate_analysis(
     analysis: ExperimentAnalysis,
     config: TrainingConfig,
 ):
+    now = datetime.now()
+    output_dir_name = f"dl_{now.year:04}:{now.month:02}:{now.day:02}-{now.hour:02}:\
+{now.minute:02}:{now.second:02}"
+    output_path = OUTPUT_ROOT.joinpath(output_dir_name)
+    assert not output_path.exists()
+    output_path.mkdir()
     feature_props = config["feature_dataset_properties"]
     target_prop = config["target_dataset_property"]
     trials = analysis.trials
@@ -42,7 +49,7 @@ def validate_analysis(
     ]
     for checkpoint in checkpoints:
         validate_checkpoint(
-            checkpoint, feature_props, target_prop, config["batch_size"]
+            checkpoint, feature_props, target_prop, config["batch_size"], output_path
         )
 
 
@@ -51,6 +58,7 @@ def validate_checkpoint(
     feature_props: List[DatasetProperty],
     target_prop: DatasetProperty,
     batch_size: int,
+    output_path: Path,
 ):
     checkpoint_path = Path(checkpoint)
     assert checkpoint_path.is_dir()
@@ -73,7 +81,7 @@ def validate_checkpoint(
     print(f"train_error: {train_error} test_error: {test_error}")
 
     file_name = checkpoint_path.parent.name + ".csv"
-    output_path = OUTPUT_ROOT.joinpath(file_name)
+    output_path = output_path.joinpath(file_name)
     prediction = np.concatenate([train_pred, test_pred], axis=0)
     target = np.concatenate([train_target, test_target])
 

@@ -49,9 +49,10 @@ class TrainingController:
             shuffle_buffer=self.shuffle_buffer,
         )
         resources_per_trial = self.resources_per_trial
+
+        metric = "val_mae"
+        mode = "min"
         if self.use_bohb:
-            metric = "val_mae"
-            mode = "min"
             time_attr = "training_iteration"
             algo = TuneBOHB(metric=metric, mode=mode)
             bohb = HyperBandForBOHB(
@@ -65,6 +66,7 @@ class TrainingController:
         else:
             scheduler = None
             search_alg = None
+
         analysis = tune.run(
             tune_trainer,
             config=config,
@@ -72,20 +74,19 @@ class TrainingController:
             scheduler=scheduler,
             search_alg=search_alg,
             num_samples=self.num_samples,
-            metric=metric,
         )
-        print(analysis.best_config)
         validate_analysis(
             analysis,
             config,
         )
+        print(analysis.get_best_config(metric=metric, mode=mode))
 
 
 def main():
-    model_token = MODEL_TOKENS["two_image"]
+    model_token = MODEL_TOKENS["conv_lstm"]
     feature_dataset_properties = [
         DATASET_TOKENS["masked_small"],
-        DATASET_TOKENS["masked_jaxa"],
+        # DATASET_TOKENS["masked_jaxa"],
     ]
     target_dataset_property = DATASET_TOKENS["masked_small"]
     controller = TrainingController(
@@ -93,12 +94,12 @@ def main():
         feature_dataset_properties=feature_dataset_properties,
         target_dataset_property=target_dataset_property,
         batch_size=64,
-        num_epochs=20,
-        learning_rate=tune.loguniform(1e-4, 1e-3),
+        num_epochs=1,
+        learning_rate=1e-3,
         shuffle_buffer=500,  # carefully set this value to avoid OOM
         resources_per_trial={"cpu": 6, "gpu": 1},
-        use_bohb=True,
-        num_samples=64,
+        use_bohb=False,
+        num_samples=1,
     )
     controller.run()
 

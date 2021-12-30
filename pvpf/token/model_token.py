@@ -22,11 +22,14 @@ conv_lstm = ModelProperty(
     model_args=ConvLSTMRegressorProperty(
         block_params=[
             ConvLSTMBlockParam(num_filters=16, kernel_size=5, pooling=None),
+            ConvLSTMBlockParam(num_filters=32, kernel_size=4, pooling=2),
             ConvLSTMBlockParam(num_filters=64, kernel_size=4, pooling=2),
-            ConvLSTMBlockParam(num_filters=128, kernel_size=3, pooling=2),
-            ConvLSTMBlockParam(num_filters=256, kernel_size=2, pooling=None),
+            ConvLSTMBlockParam(num_filters=128, kernel_size=4, pooling=2),
+            ConvLSTMBlockParam(num_filters=256, kernel_size=3, pooling=4),
+            ConvLSTMBlockParam(num_filters=1024, kernel_size=2, pooling=None),
         ],
-        l2=1e-3,
+        l2=1e-1,
+        dropout=0.2,
     ),
 )
 
@@ -49,6 +52,7 @@ two_image = ModelProperty(
             ConvLSTMBlockParam(num_filters=64, kernel_size=2, pooling=None),
         ],
         l2=tune.loguniform(1e-1, 100),
+        dropout=tune.uniform(0.2, 0.6),
     ),
 )
 
