@@ -34,14 +34,14 @@ class TrainingController:
     num_samples: int = 1
 
     def run(self):
-        model_class, model_args = (
-            self.model_prop.model_class,
+        model_builder, model_args = (
+            self.model_prop.model_builder,
             self.model_prop.model_args,
         )
         config = TrainingConfig(
             feature_dataset_properties=self.feature_dataset_properties,
             target_dataset_property=self.target_dataset_property,
-            model_class=model_class,
+            model_builder=model_builder,
             model_args=model_args,
             batch_size=self.batch_size,
             num_epochs=self.num_epochs,
@@ -83,7 +83,7 @@ class TrainingController:
 
 
 def main():
-    model_token = MODEL_TOKENS["conv_lstm"]
+    model_token = MODEL_TOKENS["conv_lstm_with_base_dim"]
     feature_dataset_properties = [
         DATASET_TOKENS["masked_small"],
         # DATASET_TOKENS["masked_jaxa"],
@@ -94,12 +94,12 @@ def main():
         feature_dataset_properties=feature_dataset_properties,
         target_dataset_property=target_dataset_property,
         batch_size=64,
-        num_epochs=1,
-        learning_rate=1e-3,
+        num_epochs=50,
+        learning_rate=tune.loguniform(1e-3, 3e-1),
         shuffle_buffer=500,  # carefully set this value to avoid OOM
         resources_per_trial={"cpu": 6, "gpu": 1},
-        use_bohb=False,
-        num_samples=1,
+        use_bohb=True,
+        num_samples=64,
     )
     controller.run()
 
