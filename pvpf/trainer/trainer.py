@@ -1,18 +1,19 @@
-from typing import List, Type, TypedDict
+from typing import List, Callable, TypedDict
 
 import tensorflow.keras as keras
 from pvpf.property.dataset_property import DatasetProperty
-from pvpf.property.model_property import ModelProperty
+from pvpf.property.model_property import ModelArgs
 from pvpf.utils.setup_dataset import setup_dataset
 from ray.tune.integration.keras import TuneReportCheckpointCallback
-import tensorflow as tf
+
+from pathlib import Path
 
 
 class TrainingConfig(TypedDict):
     feature_dataset_properties: List[DatasetProperty]
     target_dataset_property: DatasetProperty
-    model_class: Type[keras.Model]
-    model_prop: ModelProperty
+    model_builder: Callable[[ModelArgs], keras.Model]
+    model_args: ModelArgs
     batch_size: int
     num_epochs: int
     learning_rate: float
@@ -20,7 +21,8 @@ class TrainingConfig(TypedDict):
 
 
 def tune_trainer(config: TrainingConfig, checkpoint_dir: str = None):
-    model = setup_model(config["model_class"], config["model_prop"], checkpoint_dir)
+
+    model = setup_model(config["model_builder"], config["model_args"], checkpoint_dir)
     train_dataset, test_dataset = setup_dataset(
         config["feature_dataset_properties"],
         config["target_dataset_property"],
@@ -33,7 +35,6 @@ def tune_trainer(config: TrainingConfig, checkpoint_dir: str = None):
     callbacks = list()
     tune_report_callback = TuneReportCheckpointCallback(frequency=1)
     callbacks.append(tune_report_callback)
-    summarize(model, train_dataset)
     model.fit(
         train_dataset,
         validation_data=test_dataset,
@@ -43,18 +44,13 @@ def tune_trainer(config: TrainingConfig, checkpoint_dir: str = None):
 
 
 def setup_model(
-    model_class: Type[keras.Model],
-    model_prop: ModelProperty,
+    model_builder: Callable[[ModelArgs], keras.Model],
+    model_args: ModelArgs,
     checkpoint_dir: str,
 ):
     if checkpoint_dir is not None:
-        model: keras.models.Model = keras.models.load_model(checkpoint_dir)
+        path = Path(checkpoint_dir).joinpath("checkpoint")
+        model: keras.models.Model = keras.models.load_model(path)
     else:
-        model = model_class(**model_prop)
+        model = model_builder(model_args)
     return model
-
-
-def summarize(model: keras.Model, train_dataset: tf.data.Dataset):
-    model_input, _ = next(iter(train_dataset))
-    model(model_input)
-    model.summary()

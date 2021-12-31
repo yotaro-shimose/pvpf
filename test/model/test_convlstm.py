@@ -26,7 +26,8 @@ def build_convlstm_regressor():
         ConvLSTMBlockParam(num_filters=512, kernel_size=2, pooling=None),
     ]
     l2 = None
-    model = ConvLSTMRegressor(block_params, l2)
+    dropout = 0.1
+    model = ConvLSTMRegressor(block_params, l2, dropout)
     return model
 
 
@@ -46,7 +47,8 @@ def build_two_image_regressor():
         ConvLSTMBlockParam(num_filters=512, kernel_size=2, pooling=None),
     ]
     l2 = None
-    model = TwoImageRegressor(lfm_params, jaxa_params, l2)
+    dropout = 0.1
+    model = TwoImageRegressor(lfm_params, jaxa_params, l2, dropout)
     return model
 
 
