@@ -9,16 +9,21 @@ from pvpf.utils.normalize_dataset import normalize_dataset
 
 def setup_single_feature(
     feature_property: DatasetProperty,
+    normalize: bool,
 ) -> Tuple[tf.data.Dataset, tf.data.Dataset]:
     train_x, test_x = load_feature_dataset(feature_property)
-    train_x, test_x = normalize_dataset(train_x, test_x)
+    if normalize:
+        train_x, test_x = normalize_dataset(train_x, test_x)
     return train_x, test_x
 
 
 def setup_feature_dataset(
     feature_properties: List[DatasetProperty],
+    normalize: bool,
 ) -> Tuple[tf.data.Dataset, tf.data.Dataset]:
-    feature_datasets = [setup_single_feature(prop) for prop in feature_properties]
+    feature_datasets = [
+        setup_single_feature(prop, normalize) for prop in feature_properties
+    ]
     if len(feature_datasets) > 1:
         trains, tests = list(zip(*feature_datasets))
         train_x, test_x = tf.data.Dataset.zip(trains), tf.data.Dataset.zip(tests)
@@ -32,9 +37,10 @@ def setup_dataset(
     target_property: DatasetProperty,
     batch_size: int,
     shuffle_buffer_size: Optional[int],
+    normalize: bool = True,
 ) -> Tuple[tf.data.Dataset, tf.data.Dataset]:
     assert len(feature_properties) > 0
-    train_x, test_x = setup_feature_dataset(feature_properties)
+    train_x, test_x = setup_feature_dataset(feature_properties, normalize)
     train_y, test_y = load_target_dataset(target_property)
     train_dataset = tf.data.Dataset.zip((train_x, train_y))
     test_dataset = tf.data.Dataset.zip((test_x, test_y))
