@@ -1,12 +1,11 @@
-from typing import List, Callable, TypedDict
+from pathlib import Path
+from typing import Callable, List, TypedDict
 
 import tensorflow.keras as keras
 from pvpf.property.dataset_property import DatasetProperty
 from pvpf.property.model_property import ModelArgs
 from pvpf.utils.setup_dataset import setup_dataset
 from ray.tune.integration.keras import TuneReportCheckpointCallback
-
-from pathlib import Path
 
 
 class TrainingConfig(TypedDict):
@@ -35,6 +34,10 @@ def tune_trainer(config: TrainingConfig, checkpoint_dir: str = None):
     callbacks = list()
     tune_report_callback = TuneReportCheckpointCallback(frequency=1)
     callbacks.append(tune_report_callback)
+    early_stopping_callback = keras.callbacks.EarlyStopping(
+        monitor="val_mae", patience=1
+    )
+    callbacks.append(early_stopping_callback)
     model.fit(
         train_dataset,
         validation_data=test_dataset,
